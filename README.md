@@ -1,2 +1,2 @@
 # yalar
-Yet Another Lambda Calculus Repl
+**Y**et **A**nother **L**ambda C**a**lculus **R**epl
