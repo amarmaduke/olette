@@ -2,11 +2,80 @@ use std::collections::{VecDeque, HashMap};
 use std::iter::{Peekable, Enumerate};
 use std::io::{self, BufRead};
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 enum Tree {
-    Var(isize),
-    Abs(isize, Box<Tree>),
+    Var(isize, isize),
+    Abs(isize, isize, Box<Tree>),
     App(Box<Tree>, Box<Tree>),
+}
+
+impl Tree {
+
+    fn substitute(tree : Tree, argument : Tree, id : isize) -> Tree {
+        match tree {
+            Tree::Var(_, bound_id) if id == bound_id => {
+                argument
+            },
+            Tree::Var(x, y) => Tree::Var(x, y),
+            Tree::Abs(x, y, expr) => Tree::Abs(x, y, Box::new(Tree::substitute(*expr, argument, id))),
+            Tree::App(left, right) =>
+                Tree::App(Box::new(Tree::substitute(*left, argument.clone(), id)),
+                    Box::new(Tree::substitute(*right, argument, id)))
+        }
+    }
+
+    fn reduction_step(tree : Tree) -> Tree {
+        match tree {
+            Tree::Var(x, y) => Tree::Var(x, y),
+            Tree::Abs(x, y, expr) => Tree::Abs(x, y, Box::new(Tree::reduction_step(*expr))),
+            Tree::App(left, right) => {
+                if let Tree::Abs(_, id, expr) = *left {
+                    Tree::substitute(*expr, *right, id)
+                } else {
+                    Tree::App(Box::new(Tree::reduction_step(*left)),
+                        Box::new(Tree::reduction_step(*right)))
+                }
+            }
+        }
+    }
+
+    #[inline]
+    fn canonicalize_names(&mut self) {
+        let mut id = 0;
+        let mut map = HashMap::new();
+        self.canonicalize_names_helper(&mut id, &mut map);
+    }
+
+    fn canonicalize_names_helper(&mut self, id : &mut isize, bound_names : &mut HashMap<isize, Vec<isize>>) {
+        match self {
+            Tree::Var(global_id, bound_id) => {
+                *bound_id = if let Some(stack) = bound_names.get(global_id) {
+                    if let Some(new_id) = stack.iter().last() {
+                        *new_id
+                    } else {
+                        0
+                    }
+                } else {
+                    0
+                }
+            },
+            Tree::Abs(global_id, bound_id, expr) => {
+                *id += 1;
+                *bound_id = *id;
+                {
+                    let mut stack = bound_names.entry(*global_id).or_insert(vec![]);
+                    stack.push(*id);
+                }
+                expr.canonicalize_names_helper(id, bound_names);
+                let mut stack = bound_names.entry(*global_id).or_insert(vec![]);
+                stack.pop();
+            },
+            Tree::App(left, right) => {
+                left.canonicalize_names_helper(id, bound_names);
+                right.canonicalize_names_helper(id, bound_names);
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -46,11 +115,11 @@ impl<'a> Parser<'a> {
     fn parse_name(&mut self, start : usize, length : usize) -> Result<Tree, ParseError> {
         if let Some(name) = self.input.get(start..(start+length)) {
             if let Some(&id) = self.names.get(name) {
-                Ok(Tree::Var(id))
+                Ok(Tree::Var(id, id))
             } else {
                 self.id += 1;
                 self.names.insert(name, self.id);
-                Ok(Tree::Var(self.id))
+                Ok(Tree::Var(self.id, self.id))
             }
         } else {
             // Less obvious to as why, if we reach here then the lexer is fatally bugged, so just panic
@@ -76,12 +145,12 @@ impl<'a> Parser<'a> {
             0 => Err(ParseError::EmptyAbstraction),
             _ => {
                 let id = match names.pop().expect("Impossible.") {
-                    Tree::Var(id) => id,
+                    Tree::Var(id, _) => id,
                     _ => unreachable!()
                 };
-                let mut accumulator = Tree::Abs(id, Box::new(body));
-                while let Some(Tree::Var(id)) = names.pop() {
-                    accumulator = Tree::Abs(id, Box::new(accumulator));
+                let mut accumulator = Tree::Abs(id, id, Box::new(body));
+                while let Some(Tree::Var(id, _)) = names.pop() {
+                    accumulator = Tree::Abs(id, id, Box::new(accumulator));
                 }
                 Ok(accumulator)
             }
@@ -204,8 +273,17 @@ fn main() {
             let mut iterator = input.iter();
             let lexer = Lexer::new(&mut iterator);
             let mut parser = Parser::new(input, lexer);
-            let tree = parser.parse();
-            println!("{:?}", tree);
+            let tree_result = parser.parse();
+            match tree_result {
+                Ok(mut tree) => {
+                    tree.canonicalize_names();
+                    let tree = Tree::reduction_step(tree);
+                    println!("{:?}", tree);
+                },
+                Err(e) => {
+                    println!("{:?}", e);
+                }
+            }
         }
         buffer.clear();
     }
