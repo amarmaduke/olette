@@ -2,8 +2,9 @@ use std::collections::{VecDeque, HashMap};
 use std::iter::{Peekable, Enumerate};
 use std::io::{self, BufRead};
 use std::str;
+use std::time::{Instant, Duration};
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 enum Tree {
     Var(isize, isize),
     Abs(isize, isize, Box<Tree>),
@@ -54,9 +55,29 @@ impl Tree {
                 result.extend(temp.drain(..));
                 if left_in_parens { result.push(')'); }
 
+                result.push(' ');
                 let mut temp = right.to_string_helper(false, names);
                 result.extend(temp.drain(..));
             }
+        }
+        result
+    }
+
+    fn is_normal(&self) -> bool {
+        let mut result = true;
+        match self {
+            Tree::App(left, right) => {
+                if let Tree::Abs(_, _, _) = **left {
+                    result &= false;
+                } else {
+                    result &= left.is_normal();
+                    result &= right.is_normal();
+                }
+            },
+            Tree::Abs(_, _, expr) => {
+                result &= expr.is_normal();
+            }
+            Tree::Var(_, _) => { }
         }
         result
     }
@@ -86,6 +107,24 @@ impl Tree {
                         Box::new(Tree::reduction_step(*right)))
                 }
             }
+        }
+    }
+
+    fn reduce_with_timeout(tree : Tree, timeout : Duration) -> Result<(Tree, Duration), Tree> {
+        let timer = Instant::now();
+        let mut result = tree;
+        let mut finished = false;
+
+        loop {
+            result = Tree::reduction_step(result);
+            if result.is_normal() { finished = true; break; }
+            if timer.elapsed() > timeout { break; }
+        }
+
+        if finished {
+            Ok((result, timer.elapsed()))
+        } else {
+            Err(result)
         }
     }
 
@@ -336,8 +375,12 @@ fn main() {
             match tree_result {
                 Ok(mut tree) => {
                     tree.canonicalize_names();
-                    let tree = Tree::reduction_step(tree);
-                    println!("{:?}", tree.to_string(&names));
+                    let tree_result = Tree::reduce_with_timeout(tree, Duration::from_secs(3));
+                    match tree_result {
+                        Ok((tree, elapsed))
+                            => println!("{}, reduced in {}s", tree.to_string(&names), elapsed.as_secs()),
+                        Err(tree) => println!("{}, timed out.", tree.to_string(&names))
+                    }
                 },
                 Err(e) => {
                     println!("{:?}", e);
