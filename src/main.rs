@@ -1,6 +1,7 @@
 use std::collections::{VecDeque, HashMap};
 use std::iter::{Peekable, Enumerate};
 use std::io::{self, BufRead};
+use std::str;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 enum Tree {
@@ -10,6 +11,55 @@ enum Tree {
 }
 
 impl Tree {
+
+    #[inline(always)]
+    fn to_string(&self, names : &HashMap<isize, &str>) -> String {
+        self.to_string_helper(false, names)
+    }
+
+    fn to_string_helper(&self, in_abstraction : bool, names : &HashMap<isize, &str>) -> String {
+        let mut result = String::new();
+        match self {
+            Tree::Var(id, _) => result.push_str(names.get(id).unwrap_or(&"MissingId")),
+            Tree::Abs(id, _, expr) => {
+                if !in_abstraction {
+                    result.push_str(&"λ");
+                }
+                
+                let continued = if let Tree::Abs(_, _, _) = **expr {
+                    true
+                } else {
+                    false
+                };
+
+                result.push_str(names.get(id).unwrap_or(&"MissingId"));
+                if continued {
+                    result.push(' ');
+                } else {
+                    result.push('.');
+                }
+
+                let mut temp = expr.to_string_helper(continued, names);
+                result.extend(temp.drain(..));
+            },
+            Tree::App(left, right) => {
+                let left_in_parens = if let Tree::Var(_, _) = **left {
+                    false
+                } else {
+                    true
+                };
+
+                if left_in_parens { result.push('('); }
+                let mut temp = left.to_string_helper(false, names);
+                result.extend(temp.drain(..));
+                if left_in_parens { result.push(')'); }
+
+                let mut temp = right.to_string_helper(false, names);
+                result.extend(temp.drain(..));
+            }
+        }
+        result
+    }
 
     fn substitute(tree : Tree, argument : Tree, id : isize) -> Tree {
         match tree {
@@ -110,6 +160,14 @@ impl<'a> Parser<'a> {
 
     fn new(input : &'a [u8], lexer : Lexer<'a>) -> Parser<'a> {
         Parser { input, lexer, stack: vec![], names: HashMap::new(), id: 0 }
+    }
+
+    fn names_map(&self) -> HashMap<isize, &str> {
+        let mut map = HashMap::new();
+        for (key, value) in self.names.iter() {
+            map.insert(*value, str::from_utf8(*key).unwrap_or("InvalidUTF8"));
+        }
+        map
     }
 
     fn parse_name(&mut self, start : usize, length : usize) -> Result<Tree, ParseError> {
@@ -274,11 +332,12 @@ fn main() {
             let lexer = Lexer::new(&mut iterator);
             let mut parser = Parser::new(input, lexer);
             let tree_result = parser.parse();
+            let names = parser.names_map();
             match tree_result {
                 Ok(mut tree) => {
                     tree.canonicalize_names();
                     let tree = Tree::reduction_step(tree);
-                    println!("{:?}", tree);
+                    println!("{:?}", tree.to_string(&names));
                 },
                 Err(e) => {
                     println!("{:?}", e);
