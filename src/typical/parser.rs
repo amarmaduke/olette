@@ -2,7 +2,7 @@ use std::collections::{VecDeque, HashMap};
 use std::iter::{Peekable, Enumerate};
 use std::str;
 
-use lang::Tree;
+use typical::Tree;
 
 #[derive(Debug)]
 pub enum ParseError {
