@@ -2,6 +2,7 @@ use std::io::{self, BufRead};
 use std::time::{Duration};
 
 mod typical;
+mod lexer;
 
 fn main() {
     let mut buffer = String::new();
@@ -11,8 +12,7 @@ fn main() {
         handle.read_line(&mut buffer).expect("Failed to read line.");
         {
             let input = buffer.as_bytes();
-            let mut iterator = input.iter();
-            let lexer = typical::Lexer::new(&mut iterator);
+            let lexer = lexer::Lexer::new(input);
             let mut parser = typical::Parser::new(input, lexer);
             let tree_result = parser.parse();
             let names = parser.names_map();
