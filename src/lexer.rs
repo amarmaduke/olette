@@ -34,10 +34,10 @@ impl<'a> Iterator for Lexer<'a> {
         self.input.get(self.location)
         .map_or(None,
         |x| Some(match x {
-            b'(' => Token::OpenParen,
-            b')' => Token::CloseParen,
-            b'\\' => Token::Lambda,
-            b'.' => Token::Dot,
+            b'(' => { self.location += 1; Token::OpenParen },
+            b')' => { self.location += 1; Token::CloseParen },
+            b'\\' => { self.location += 1; Token::Lambda },
+            b'.' => { self.location += 1; Token::Dot },
             _ => {
                 difference += 1;
                 while let Some(i) = self.input.get(self.location + difference) {

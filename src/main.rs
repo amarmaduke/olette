@@ -2,6 +2,7 @@ use std::io::{self, BufRead};
 use std::time::{Duration};
 
 mod typical;
+mod lamping_simple;
 mod lexer;
 
 fn main() {
@@ -19,6 +20,8 @@ fn main() {
             match tree_result {
                 Ok(mut tree) => {
                     tree.canonicalize_names();
+                    let net = lamping_simple::Net::from_tree(&tree);
+                    println!("Lamping Simple Net: {:?}", net);
                     let tree_result = typical::Tree::reduce_with_timeout(tree, Duration::from_secs(3));
                     match tree_result {
                         Ok((tree, elapsed))
