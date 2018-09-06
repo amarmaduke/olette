@@ -21,12 +21,16 @@ fn main() {
                 Ok(mut tree) => {
                     tree.canonicalize_names();
                     let net = lamping_simple::Net::from_tree(&tree);
-                    println!("Lamping Simple Net: {:?}", net);
-                    let tree_result = typical::Tree::reduce_with_timeout(tree, Duration::from_secs(3));
-                    match tree_result {
-                        Ok((tree, elapsed))
-                            => println!("{}, reduced in {}s", tree.to_string(&names), elapsed.as_secs()),
-                        Err(tree) => println!("{}, timed out.", tree.to_string(&names))
+                    println!("Parsed Net: {:?}", net);
+                    let tree_result = typical::Tree::reduce_with_timeout(tree, Duration::from_secs(1));
+                    let net_result = lamping_simple::Net::reduce_with_timeout(net, Duration::from_secs(1));
+                    match (tree_result, net_result) {
+                        (Ok((tree, elapsed1)), Ok((net, elapsed2))) => {
+                            println!("Tree {}, reduced in {}s", tree.to_string(&names), elapsed1.as_secs());
+                            println!("Net {:?}, reduced in {}s", net, elapsed2.as_secs());
+                        },
+                        _ => { println!("Error."); }
+                        //Err(tree) => println!("{}, timed out.", tree.to_string(&names))
                     }
                 },
                 Err(e) => {
