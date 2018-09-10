@@ -5,7 +5,7 @@ mod typical;
 mod lamping_simple;
 mod lexer;
 
-fn main() {
+fn old_main() {
     let mut buffer = String::new();
     let stdin = io::stdin();
     let mut handle = stdin.lock();

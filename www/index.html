@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      .links line {
+        stroke: #999;
+        stroke-opacity: 0.6;
+      }
+      .nodes circle {
+        stroke: #fff;
+        stroke-width: 1.5px;
+      }
+      .svg-container {
+        display: inline-block;
+        position: relative;
+        width: 100%;
+        padding-bottom: 100%; /* aspect ratio */
+        vertical-align: top;
+        overflow: hidden;
+      }
+      .svg-content-responsive {
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      </style>
+    <title>Hello wasm-pack!</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
+  </head>
+  <body>
+    <div class="container is-fluid" style="padding-top: 10px;">
+      <div class="field is-grouped">
+        <p class="control is-expanded">
+          <input class="input is-large" type="text" placeholder="λx y. x or \x y. y">
+        </p>
+        <p class="control">
+          <a id="load_button" class="button is-large is-primary"> Load </a>
+        </p>
+        <p class="control">
+          <a class="button is-large" disabled> Reduce </a>
+        </p>
+      </div>
+    </section>
+    <div class="net"></div>
+  </body>
+  <script defer src="./bootstrap.js"></script>
+  <script defer src="https://d3js.org/d3.v4.min.js"></script>
+  <script defer src="./render.js"></script>
+</html>
