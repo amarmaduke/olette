@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
-use std::time::{Instant, Duration};
+//use std::time::{Instant, Duration};
 use std::fmt;
-use std::cmp;
+//use std::cmp;
 
 use typical::Tree;
 
@@ -17,8 +17,8 @@ impl<T> Replace<T> for Vec<T> {
 }
 
 // We use the first two bits to distinguish the port
-#[derive(Copy, Clone)]
-pub struct Edge(u32);
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub struct Edge(pub u32);
 
 impl Edge {
     // Port is really a u2, ptr is really a u30
@@ -47,12 +47,23 @@ impl fmt::Debug for Edge {
 
 const SENTINEL : Edge = Edge(0);
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RuleKind {
+    Auto,
+    Cancel,
+    Duplicate,
+    Erase,
+    None
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Agent {
     Root([Edge; 1]),
+    Eraser([Edge; 1]),
     Lambda([Edge; 3]),
     Application([Edge; 3]),
-    Duplicator([Edge; 3])
+    Duplicator([Edge; 3]),
+    Dummy
 }
 
 const DUMMY : Agent = Agent::Root([SENTINEL]);
@@ -65,9 +76,11 @@ impl Agent {
             | Agent::Duplicator(ref mut array) => {
                 array[index % 3] = data;
             },
-            Agent::Root(ref mut array) => {
+            Agent::Root(ref mut array)
+            | Agent::Eraser(ref mut array) => {
                 array[0] = data;
-            }
+            },
+            Agent::Dummy => { }
         }
     }
 
@@ -75,20 +88,147 @@ impl Agent {
         match self {
             Agent::Lambda(ref array)
             | Agent::Application(ref array)
-            | Agent::Duplicator(ref array) => array[index % 3],
-            Agent::Root(ref array) => array[0]
+            | Agent::Duplicator(ref array) => array[index],
+            Agent::Root(ref array)
+            | Agent::Eraser(ref array) => array[index],
+            Agent::Dummy => panic!("Cannot dereference dummy agent.")
         }
+    }
+
+    pub fn try_get(&self, index : usize) -> Option<Edge> {
+        use self::Agent::*;
+        match self {
+            Lambda(ref array) | Application(ref array) | Duplicator(ref array) if index < 3
+                => Some(array[index]),
+            Root(ref array) | Eraser(ref array) if index == 0
+                => Some(array[0]),
+            _ => None
+        }
+    }
+
+    pub fn metadata(&self) -> (String, String, Vec<usize>) {
+        use self::Agent::*;
+        match self {
+            Root(..) => ("root".to_string(), "ℝ".to_string(), vec![90]),
+            Eraser(..) => ("eraser".to_string(), "x".to_string(), vec![90]),
+            Lambda(..) => ("lambda".to_string(), "λ".to_string(), vec![270, 45, 135]),
+            Application(..) => ("application".to_string(), "@".to_string(), vec![135, 270, 45]),
+            Duplicator(..) => ("duplicator".to_string(), "△".to_string(), vec![270, 45, 135]),
+            Dummy => ("dummy".to_string(), "ERROR DUMMY".to_string(), vec![0, 0, 0])
+        }
+    }
+
+    fn agent_port_orientation(&self, port : usize) -> usize {
+        use self::Agent::*;
+        let v = match self {
+            Root(..) | Eraser(..) => vec![90],
+            Lambda(..) => vec![270, 45, 135],
+            Application(..) => vec![135, 270, 45],
+            Duplicator(..) => vec![270, 45, 135],
+            Dummy => vec![0, 0, 0]
+        };
+        v[port]
     }
 }
 
 #[derive(Debug)]
 pub struct Net {
-    nodes : Vec<Agent>
+    pub nodes : Vec<Agent>
 }
 
 impl Net {
     pub fn new() -> Net {
         Net { nodes: vec![Agent::Root([SENTINEL])] }
+    }
+
+    pub fn to_json(&self) -> String {
+        let mut nodes = vec![];
+        let mut links = vec![];
+        let mut idmap = HashMap::new();
+        let critical = self.find_critical_agents();
+
+        for i in 0..self.nodes.len() {
+            match self.nodes[i] {
+                Agent::Dummy => { }
+                _ => {
+                    let m = self.nodes[i].metadata();
+                    let (color, width) = if critical.contains(&i) { 
+                            ("black", "3")
+                        } else { 
+                            ("white", "1")
+                        };
+                    idmap.insert(i, nodes.len());
+                    nodes.push(json!({
+                        "id": i,
+                        "kind": m.0,
+                        "label": m.1,
+                        "ports": m.2,
+                        "color": color,
+                        "width": width
+                    }));
+                }
+            }
+        }
+
+        for i in 0..self.nodes.len() {
+            let source = &self.nodes[i];
+            match source {
+                Agent::Root(ref array)
+                | Agent::Eraser(ref array) => {
+                    for j in 0..array.len() {
+                        let target = &self.nodes[array[j].ptr()];
+                        let ports = json!({
+                            "s": source.agent_port_orientation(j),
+                            "t": target.agent_port_orientation(array[j].port())
+                        });
+                        links.push(json!({
+                            "source": idmap.get(&i).unwrap(),
+                            "target": idmap.get(&array[j].ptr()).unwrap(),
+                            "ports": ports,
+                            "force": 1
+                        }));
+                    }
+                },
+                Agent::Lambda(ref array)
+                | Agent::Application(ref array) => {
+                    for j in 0..array.len() {
+                        let target = &self.nodes[array[j].ptr()];
+                        let ports = json!({
+                            "s": source.agent_port_orientation(j),
+                            "t": target.agent_port_orientation(array[j].port())
+                        });
+                        links.push(json!({
+                            "source": idmap.get(&i).unwrap(),
+                            "target": idmap.get(&array[j].ptr()).unwrap(),
+                            "ports": ports,
+                            "force": 1
+                        }));
+                    }
+                },
+                Agent::Duplicator(ref array) => {
+                    for j in 0..array.len() {
+                        let target = &self.nodes[array[j].ptr()];
+                        let ports = json!({
+                            "s": source.agent_port_orientation(j),
+                            "t": target.agent_port_orientation(array[j].port())
+                        });
+                        links.push(json!({
+                            "source": idmap.get(&i).unwrap(),
+                            "target": idmap.get(&array[j].ptr()).unwrap(),
+                            "ports": ports,
+                            "force": if j == 0 { 1 } else { 0 }
+                        }));
+                    }
+                },
+                Agent::Dummy => { }
+            }
+        }
+
+        let result = json!({
+            "nodes": nodes,
+            "links": links
+        });
+        result.to_string()
     }
 
     pub fn from_tree(tree : &Tree) -> Net {
@@ -157,177 +297,181 @@ impl Net {
         }
     }
 
-    fn find_all_critical_pairs(&self) -> Vec<(usize, usize)> {
+    fn find_critical_agents(&self) -> HashSet<usize> {
         let mut set = HashSet::new();
         for i in 0..self.nodes.len() {
-            let edge = self.nodes[i].get(0);
-            if edge.port() == 0 {
-                let left = cmp::min(i, edge.ptr());
-                let right = cmp::max(i, edge.ptr());
-                set.insert((left, right));
+            if let Some(edge) = self.nodes[i].try_get(0) {
+                if edge.port() == 0 && self.valid_rule(i) {
+                    set.insert(i);
+                }
             }
         }
-        let result = set.drain().collect();
-        result
+        set
     }
 
-    fn reduction_step(net : &mut Net, pairs : &mut Vec<(usize, usize)>) {
-        if let Some(pair) = pairs.pop() {
-            let ptr = net.nodes.as_mut_ptr();
-            unsafe {
-                let agent1 = &*ptr.offset(pair.0 as isize);
-                let agent2 = &*ptr.offset(pair.1 as isize);
-                match (agent1, agent2) {
-                    (Agent::Lambda(abs), Agent::Application(app))
-                    | (Agent::Application(app), Agent::Lambda(abs)) => {
-                        /* Beta Step
-                                x               x
-                                |               |
-                                @               |
-                               / \    =>      .-+---.
-                              L   y           | |   y
-                             / \              |  \
-                            w   z             w   z
-                        */
-                        // Connect z to x (at the same port L was connected to z)
-                        net.nodes[abs[1].ptr()].mutate(abs[1].port(), app[1]);
-                        // Connect w to y (at the same port L was connected to w)
-                        net.nodes[abs[2].ptr()].mutate(abs[2].port(), app[2]);
-                        // Connect x to z (at the same port @ was connected to x)
-                        net.nodes[app[1].ptr()].mutate(app[1].port(), abs[1]);
-                        // Connect y to w (at the same port @ was connected to y)
-                        net.nodes[app[2].ptr()].mutate(app[2].port(), abs[2]);
-
-                        // Check for new critical pairs
-                        // TODO
-                    },
-                    (Agent::Lambda(abs), Agent::Duplicator(dup))
-                    | (Agent::Duplicator(dup), Agent::Lambda(abs)) => {
-                        /* Duplicate under Lambda
-                            x     y         x        y
-                             \   /          |        |
-                              \ /           L--.  .--L
-                               D            |   \/   |
-                               |      =>    |   /\   |
-                               L            D--/  \--D
-                              / \           |        |
-                             /   \          |        |
-                            w     z         w        z
-                        */
-                        let abs_index = dup[0].ptr();
-                        let dup_index = abs[0].ptr();
-                        let new_lam_index = net.nodes.len();
-                        let new_dup_index = new_lam_index + 1;
-                        // Create new lambda
-                        net.nodes.push(Agent::Lambda([
-                            dup[2], Edge::new(2, new_dup_index), Edge::new(2, dup_index)
-                        ]));
-                        // Create new duplicator
-                        net.nodes.push(Agent::Duplicator([
-                            abs[1], Edge::new(1, abs_index), Edge::new(1, new_lam_index)
-                        ]));
-                        // Connect y to new lambda
-                        net.nodes[dup[2].ptr()].mutate(dup[2].port(), Edge::new(0, new_lam_index));
-                        // Connect z to new duplicator
-                        net.nodes[abs[1].ptr()].mutate(abs[1].port(), Edge::new(0, new_dup_index));
-
-                        let x_edge = dup[1];
-                        let w_edge = abs[2];
-                        // Re-create old lambda
-                        net.nodes[abs_index] = Agent::Lambda([
-                            x_edge, Edge::new(1, new_dup_index), Edge::new(1, dup_index)
-                        ]);
-                        // Re-create old duplicator
-                        net.nodes[dup_index] = Agent::Duplicator([
-                            w_edge, Edge::new(2, abs_index), Edge::new(2, new_lam_index)
-                        ]);
-                        // Connect w to old duplicator
-                        net.nodes[w_edge.ptr()].mutate(w_edge.port(), Edge::new(0, dup_index));
-                        // Connect x to old lambda
-                        net.nodes[x_edge.ptr()].mutate(x_edge.port(), Edge::new(0, abs_index));
-
-                        // Check for new critical pairs
-                        // TODO
-                    },
-                    (Agent::Duplicator(dup), Agent::Application(app))
-                    | (Agent::Application(app), Agent::Duplicator(dup)) => {
-                        /* Duplicate under Application
-                                    x                    x
-                                    |                    |
-                                    @                    D
-                                   / \                  / \
-                                  /   y    =>          @   @
-                              w--D                    / \ / \
-                                 |                   /   X   |
-                                 |                  w   / \ /
-                                 z                     z   D-- y
-                        */
-                        let dup_index = app[0].ptr();
-                        let app_index = dup[0].ptr();
-                        let new_dup_index = net.nodes.len();
-                        let new_app_index = new_dup_index + 1;
-                        // Create new duplicator
-                        net.nodes.push(Agent::Duplicator([
-                            app[2], Edge::new(2, app_index), Edge::new(2, new_app_index)
-                        ]));
-                        // Create new application
-                        net.nodes.push(Agent::Application([
-                            dup[2], Edge::new(2, dup_index), Edge::new(2, new_dup_index)
-                        ]));
-                        // Connect y to new duplicator
-                        net.nodes[app[2].ptr()].mutate(app[2].port(), Edge::new(0, new_dup_index));
-                        // Connect z to new application
-                        net.nodes[dup[2].ptr()].mutate(dup[2].port(), Edge::new(0, new_app_index));
-
-                        let x_edge = app[1];
-                        let w_edge = dup[1];
-                        // Re-create old duplicator
-                        net.nodes[dup_index] = Agent::Duplicator([
-                            x_edge, Edge::new(1, app_index), Edge::new(1, new_app_index)
-                        ]);
-                        // Re-create old application
-                        net.nodes[app_index] = Agent::Application([
-                            w_edge, Edge::new(1, dup_index), Edge::new(1, new_dup_index)
-                        ]);
-                        // Connect x to old duplicator
-                        net.nodes[x_edge.ptr()].mutate(x_edge.port(), Edge::new(0, dup_index));
-                        // Connect w to old application
-                        net.nodes[w_edge.ptr()].mutate(w_edge.port(), Edge::new(0, app_index));
-
-                        // Check for new critical pairs
-                        // TODO
-                    },
-                    (Agent::Duplicator(dup1), Agent::Duplicator(dup2)) => {
-                        /* Dup Cancel, (D) is flipped in plane
-                            x       y        x       y
-                             \     /         |       |
-                              \   /          |       |
-                                D            |       |
-                                |       =>   |       |
-                               (D)           |       |
-                               / \           |       |
-                              /   \          |       |
-                             w     z         w       z
-                        */
-                        let x_edge = dup2[1];
-                        let y_edge = dup2[2];
-                        let z_edge = dup1[1];
-                        let w_edge = dup1[2];
-                        net.nodes[x_edge.ptr()].mutate(x_edge.port(), w_edge);
-                        net.nodes[w_edge.ptr()].mutate(w_edge.port(), x_edge);
-                        net.nodes[y_edge.ptr()].mutate(y_edge.port(), z_edge);
-                        net.nodes[z_edge.ptr()].mutate(z_edge.port(), y_edge);
-
-                        // Check for new critical pairs
-                        // TODO
-                    },
-                    _ => { /* Do nothing */ }
-                };
+    fn valid_rule(&self, agent_index : usize) -> bool {
+        use self::Agent::*;
+        if let Some(partner_edge) = self.nodes[agent_index].try_get(0) {
+            let partner_index = partner_edge.ptr();
+            let agent = &self.nodes[agent_index];
+            let partner = &self.nodes[partner_index];
+            match (agent, partner) {
+                | (Lambda(_), Application(_))
+                | (Application(_), Lambda(_))
+                | (Duplicator(_), Duplicator(_))
+                | (Lambda(_), Duplicator(_))
+                | (Duplicator(_), Lambda(_))
+                | (Duplicator(_), Application(_))
+                | (Application(_), Duplicator(_))
+                | (Eraser(_), _)
+                | (_, Eraser(_)) => true,
+                _ => false
             }
+        } else {
+            false
         }
     }
 
-    pub fn reduce_with_timeout(net : Net, timeout : Duration) -> Result<(Net, Duration), Net> {
+    pub fn reduction_step(&mut self, agent_index : usize, requested_kind : RuleKind) {
+        use self::Agent::*;
+        let partner_index = self.nodes[agent_index].get(0).ptr();
+
+        let (agent, partner, kind) = {
+            let agent = &self.nodes[agent_index];
+            let partner = &self.nodes[partner_index];
+            match (agent, partner) {
+                | (Lambda(_), Application(_))
+                | (Application(_), Lambda(_))
+                | (Duplicator(_), Duplicator(_))
+                => (agent.clone(), partner.clone(), RuleKind::Cancel),
+                | (Lambda(_), Duplicator(_))
+                | (Duplicator(_), Lambda(_))
+                | (Duplicator(_), Application(_))
+                | (Application(_), Duplicator(_))
+                => (agent.clone(), partner.clone(), RuleKind::Duplicate),
+                | (Eraser(_), _)
+                | (_, Eraser(_))
+                => (agent.clone(), partner.clone(), RuleKind::Erase),
+                _ => (Agent::Dummy, Agent::Dummy, RuleKind::None)
+            }
+        };
+
+        let kind = if requested_kind == RuleKind::Auto || requested_kind == RuleKind::None { 
+            kind
+        } else { 
+            requested_kind
+        };
+
+        match kind {
+            RuleKind::Cancel => {
+                /* Cancel, (i) is flipped in plane
+                        x       y        x       y
+                         \     /         |       |
+                          \   /          |       |
+                            j            |       |
+                            |       =>   |       |
+                           (i)           |       |
+                           / \           |       |
+                          /   \          |       |
+                         w     z         w       z
+                */
+                let x_edge = partner.get(1);
+                let y_edge = partner.get(2);
+                let z_edge = agent.get(2);
+                let w_edge = agent.get(1);
+                let i_index = agent_index;
+                let j_index = partner_index;
+                if z_edge.ptr() == i_index && w_edge.ptr() == i_index {
+                    self.nodes[x_edge.ptr()].mutate(x_edge.port(), y_edge);
+                    self.nodes[y_edge.ptr()].mutate(y_edge.port(), x_edge);
+                } else if y_edge.ptr() == j_index && x_edge.ptr() == j_index {
+                    self.nodes[w_edge.ptr()].mutate(w_edge.port(), z_edge);
+                    self.nodes[z_edge.ptr()].mutate(z_edge.port(), w_edge);
+                } else if z_edge.ptr() == j_index && x_edge.ptr() == i_index {
+                    self.nodes[w_edge.ptr()].mutate(w_edge.port(), y_edge);
+                    self.nodes[y_edge.ptr()].mutate(y_edge.port(), w_edge);
+                } else if w_edge.ptr() == j_index && y_edge.ptr() == i_index {
+                    self.nodes[x_edge.ptr()].mutate(x_edge.port(), z_edge);
+                    self.nodes[z_edge.ptr()].mutate(z_edge.port(), x_edge);
+                } else {
+                    self.nodes[x_edge.ptr()].mutate(x_edge.port(), w_edge);
+                    self.nodes[w_edge.ptr()].mutate(w_edge.port(), x_edge);
+                    self.nodes[y_edge.ptr()].mutate(y_edge.port(), z_edge);
+                    self.nodes[z_edge.ptr()].mutate(z_edge.port(), y_edge);
+                }
+                self.nodes[agent_index] = Agent::Dummy;
+                self.nodes[partner_index] = Agent::Dummy;
+            },
+            RuleKind::Erase => {
+                /* Erase
+                    x       y        x       y
+                     \     /         |       |
+                      \   /     =>   |       |
+                        j            |       |
+                        |            E       E
+                        E                     
+                */
+            },
+            RuleKind::Duplicate => {
+                /* Duplicate
+                        x     y         x        y
+                         \   /          |        |
+                          \ /           i--.  .--i'
+                           j            |   \/   |
+                           |      =>    |   /\   |
+                           i            j--/  \--j'
+                          / \           |        |
+                         /   \          |        |
+                        w     z         w        z
+                */
+                let x_edge = partner.get(1);
+                let y_edge = partner.get(2);
+                let z_edge = agent.get(1);
+                let w_edge = agent.get(2);
+
+                let i_index = agent_index;
+                let j_index = partner_index;
+                let i_prime_index = self.nodes.len();
+                let j_prime_index = i_prime_index + 1;
+                // agent i'
+                self.nodes.push(agent);
+                self.nodes[i_prime_index].mutate(0, y_edge);
+                self.nodes[i_prime_index].mutate(1, Edge::new(2, j_prime_index));
+                self.nodes[i_prime_index].mutate(2, Edge::new(2, j_index));
+                // agent j'
+                self.nodes.push(partner);
+                self.nodes[j_prime_index].mutate(0, z_edge);
+                self.nodes[j_prime_index].mutate(1, Edge::new(1, i_index));
+                self.nodes[j_prime_index].mutate(2, Edge::new(1, i_prime_index));
+                // agent i
+                self.nodes[i_index].mutate(0, x_edge);
+                self.nodes[i_index].mutate(1, Edge::new(1, j_prime_index));
+                self.nodes[i_index].mutate(2, Edge::new(1, j_index));
+                // agent j
+                self.nodes[j_index].mutate(0, w_edge);
+                self.nodes[j_index].mutate(1, Edge::new(2, i_index));
+                self.nodes[j_index].mutate(2, Edge::new(2, i_prime_index));
+                // fix edges accordingly
+                if w_edge.ptr() == i_index && z_edge.ptr() == i_index {
+                    self.nodes[j_index].mutate(0, Edge::new(0, j_prime_index));
+                    self.nodes[j_prime_index].mutate(0, Edge::new(0, j_index));
+                } else {
+                    self.nodes[w_edge.ptr()].mutate(w_edge.port(), Edge::new(0, j_index));
+                    self.nodes[z_edge.ptr()].mutate(z_edge.port(), Edge::new(0, j_prime_index));
+                }
+                if x_edge.ptr() == j_index && y_edge.ptr() == j_index {
+                    self.nodes[i_index].mutate(0, Edge::new(0, i_prime_index));
+                    self.nodes[i_prime_index].mutate(0, Edge::new(0, i_index));
+                } else {
+                    self.nodes[x_edge.ptr()].mutate(x_edge.port(), Edge::new(0, i_index));
+                    self.nodes[y_edge.ptr()].mutate(y_edge.port(), Edge::new(0, i_prime_index));
+                }
+            },
+            RuleKind::None | RuleKind::Auto => { }
+        }
+    }
+
+    /*pub fn reduce_with_timeout(net : Net, timeout : Duration) -> Result<(Net, Duration), Net> {
         let timer = Instant::now();
         let mut result = net;
         let mut finished = true;
@@ -345,5 +489,5 @@ impl Net {
         } else {
             Err(result)
         }
-    }
+    }*/
 }

@@ -16,7 +16,7 @@
         display: inline-block;
         position: relative;
         width: 100%;
-        padding-bottom: 100%; /* aspect ratio */
+        padding-bottom: 50%;
         vertical-align: top;
         overflow: hidden;
       }
@@ -35,19 +35,45 @@
     <div class="container is-fluid" style="padding-top: 10px;">
       <div class="field is-grouped">
         <p class="control is-expanded">
-          <input class="input is-large" type="text" placeholder="λx y. x or \x y. y">
+          <input id="lambda_input" class="input" type="text" placeholder="λx y. x or \x y. y">
         </p>
         <p class="control">
-          <a id="load_button" class="button is-large is-primary"> Load </a>
+          <a id="load_button" class="button is-primary"> Load </a>
         </p>
         <p class="control">
-          <a class="button is-large" disabled> Reduce </a>
+          <a id="reduce_button" class="button is-danger" disabled> Reduce </a>
+        </p>
+        <p class="control">
+          <a id="force_button" class="button is-primary"> Toggle Force </a>
+        </p>
+        <p class="control">
+          <div id="dropdown" class="dropdown">
+            <div class="dropdown-trigger">
+              <button id="dropdown_button" class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                <span>Choose a Rule</span>
+                <span class="icon is-small">
+                  <i class="fas fa-angle-down" aria-hidden="true"></i>
+                </span>
+              </button>
+            </div>
+            <div class="dropdown-menu" id="dropdown-menu" role="menu">
+              <div class="dropdown-content">
+                <a id="auto" class="dropdown-item is-active">
+                  Automatically Decide Rule
+                </a>
+                <a id="cancel" class="dropdown-item">
+                  Use Cancel Rule
+                </a>
+                <a id="duplicate" class="dropdown-item">
+                  Use Duplicate Rule
+                </a>
+              </div>
+            </div>
+          </div>
         </p>
       </div>
     </section>
     <div class="net"></div>
   </body>
   <script defer src="./bootstrap.js"></script>
-  <script defer src="https://d3js.org/d3.v4.min.js"></script>
-  <script defer src="./render.js"></script>
 </html>
