@@ -16,3 +16,5 @@ package-lock.json
 *.log
 
 **/**/.DS_Store
+**/**/bin
+www/dist
