@@ -1,16 +1,19 @@
+
 extern crate cfg_if;
 extern crate wasm_bindgen;
 #[macro_use]
 extern crate serde_json;
 #[macro_use]
+extern crate serde_derive;
+#[macro_use]
 extern crate lazy_static;
 
 mod utils;
-mod lamping_simple;
+mod abstract_algorithm;
 mod lexer;
 mod typical;
 
-use lamping_simple::*;
+use abstract_algorithm::*;
 use wasm_bindgen::prelude::*;
 use std::sync::Mutex;
 
@@ -22,6 +25,13 @@ lazy_static! {
 extern {
     #[wasm_bindgen(js_namespace = console)]
     fn log(s: &str);
+}
+
+#[wasm_bindgen]
+pub fn update(json : &str) {
+    let data = serde_json::from_str::<NodeDataArray>(json).ok().unwrap();
+    let mut net = NET.try_lock().expect("Locking failed.");
+    net.update_from_json(data);
 }
 
 #[wasm_bindgen]
@@ -51,9 +61,11 @@ pub fn load_net(term : &str) -> String {
     match tree_result {
         Ok(mut tree) => {
             tree.canonicalize_names();
-            *net = lamping_simple::Net::from_tree(&tree);
+            *net = abstract_algorithm::Net::from_tree(&tree);
             log(format!("{:?}", *net).as_str());
-            net.to_json()
+            let result = net.to_json();
+            log(format!("{}", result).as_str());
+            result
         },
         Err(e) => {
             "Error".to_string()

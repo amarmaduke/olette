@@ -6,7 +6,8 @@ let promise = import("./src/index.js")
 
 const button = document.getElementById('load_button');
 const reduce_button = document.getElementById("reduce_button");
-const force_button = document.getElementById("force_button");
+const force_on_button = document.getElementById("force_on_button");
+const force_off_button = document.getElementById("force_off_button");
 const input = document.getElementById("lambda_input");
 const dropdown = document.getElementById("dropdown");
 const dropdown_button = document.getElementById("dropdown_button");
@@ -15,7 +16,7 @@ const duplicate_choice = document.getElementById("duplicate");
 const cancel_choice = document.getElementById("cancel");
 
 Promise.all([promise]).then(promises => {
-    var yalar = promises[0];
+    var olette = promises[0];
 
     var rule_kind = "auto";
     var current_active = auto_choice;
@@ -28,14 +29,26 @@ Promise.all([promise]).then(promises => {
         dropdown.classList.toggle("is-active");
     });
 
-    force_button.addEventListener("click", event => {
-        if (simulation_flag) {
-            node.each(d => { d.fx = d.x; d.fy = d.y; });
-            simulation_flag = false;
-        } else {
-            node.each(d => { d.fx = null; d.fy = null; });
-            simulation.alphaTarget(1);
-            simulation_flag = true;
+    force_on_button.addEventListener("click", event => {
+        simulation_flag = true;
+        node.each(d => { d.fx = null; d.fy = null; d.fixed = false; });
+        simulation.alphaTarget(1);
+        for (let i = 0; i < data.nodes.length; ++i) {
+            let d = data.nodes[i];
+            d.fx = null;
+            d.fy = null;
+            d.fixed = false;
+        }
+    });
+
+    force_off_button.addEventListener("click", event => {
+        simulation_flag = false;
+        node.each(d => { d.fx = d.x; d.fy = d.y; d.fixed = true; });
+        for (let i = 0; i < data.nodes.length; ++i) {
+            let d = data.nodes[i];
+            d.fx = d.x;
+            d.fy = d.y;
+            d.fixed = true;
         }
     });
 
@@ -100,7 +113,7 @@ Promise.all([promise]).then(promises => {
 
     simulation = d3.forceSimulation()
         .force("link", d3.forceLink().distance(80))
-        .force("charge", d3.forceManyBody().strength(-400))
+        .force("charge", d3.forceManyBody().strength(-600))
         .force("x", d3.forceX(width / 2))
         .force("y", d3.forceY(height / 2));
 
@@ -146,6 +159,8 @@ Promise.all([promise]).then(promises => {
             .attr("stroke", d => d.color)
             .attr("stroke-width", d => d.width)
             .attr("fill", d => color(d.kind))
+            .attr("fx", d => d.fx)
+            .attr("fy", d => d.fy)
             .attr("id", d => d.id)
             .on("click", clicked)
             .merge(node);
@@ -179,8 +194,8 @@ Promise.all([promise]).then(promises => {
         label.call(drag);
 
         simulation.nodes(data.nodes).on("tick", tick);
-        simulation.force("link").links(data.links);
-            //.strength(k => k.force * (1/3));
+        simulation.force("link").links(data.links)
+            .strength(k => k.force * (1/3));
         simulation.alphaTarget(alpha).restart();
     }
 
@@ -188,7 +203,14 @@ Promise.all([promise]).then(promises => {
         let k = 6 * simulation.alpha();
 
         link
-            //.each(d => { d.source.y -= k, d.target.y += k; })
+            .each(d => {
+                if (!d.source.fixed && !d.target.fixed) {
+                    d.source.y -= d.force * k;
+                    d.target.y += d.force * k;
+                }
+            })
+            .attr("stroke", d => d.color ? d.color : "#ddd")
+            .attr("stroke-width", d => d.width ? d.width : "2")
             .attr("d", d => {
                 let tx_normal = Math.cos(toRadians(d.ports.t));
                 let ty_normal = Math.sin(toRadians(d.ports.t));
@@ -198,7 +220,7 @@ Promise.all([promise]).then(promises => {
                 let r = 15;
                 let p = 4;
                 if (d.source == d.target) {
-                    p = 2;
+                    p = 3;
                 }
 
                 let tx = r*tx_normal + d.target.x;
@@ -240,14 +262,20 @@ Promise.all([promise]).then(promises => {
         
         label.attr("x", d => d.x)
             .attr("y", d => d.y)
+            .text(d => d.label)
             .style("font-size", "20px")
             .style("fill", "#4393c3");
     }
 
     function clicked(d) {
         let previous = node.filter((d, i) => d.id === selection).node();
+        let previous_wire = data.links.filter(
+            d => (d.source.id == selection && d.p.s == 0)
+            || (d.target.id == selection && d.p.t == 0))[0];
         if (previous !== null) {
             previous.__data__.color = previous_color;
+            previous_wire.width = "2";
+            previous_wire.color = "#ddd";
         }
         if (d.color === "black") {
             reduce_button.removeAttribute("disabled");
@@ -259,36 +287,45 @@ Promise.all([promise]).then(promises => {
         selection_x = d.x;
         selection_y = d.y;
         previous_color = d.color;
-        d.color = "red"
+        d.color = "red";
+        let wire = data.links.filter(
+            d => (d.source.id == selection && d.p.s == 0)
+            || (d.target.id == selection && d.p.t == 0))[0];
+        wire.width = "2";
+        wire.color = "black";
     }
 
     function load() {
         clear();
-        data = JSON.parse(yalar.load_net(input.value));
+        data = JSON.parse(olette.load_net(input.value));
         update(1.0);
         Storage.set("net", data);
     }
 
     function reduce() {
-        var patch = JSON.parse(yalar.reduce_net(selection, rule_kind));
+        let darray = { "nodes": [] };
+        for (let i = 0; i < data.nodes.length; ++i) {
+            let d = data.nodes[i];
+            let k = {
+                "id": d.id,
+                "x": d.x,
+                "y": d.y,
+                "fixed": d.fixed,
+                "label": d.label
+            };
+            darray.nodes.push(k);
+        }
+        olette.update_net(JSON.stringify(darray));
+        var patch = JSON.parse(olette.reduce_net(selection, rule_kind));
         simulation.stop();
-
-        // d3js should handle this merging part, but for whatever reason it's not
-        data.links = patch.links;
-        data.nodes = data.nodes.filter(x => patch.nodes.find(y => x.id === y.id));
-        for (let i = 0; i < patch.nodes.length; ++i) {
-            let p = patch.nodes[i];
-            let d = data.nodes.find(y => y.id === p.id);
-            if (d) {
-                d.color = p.color;
-                d.width = p.width;
-            } else {
-                p.x = selection_x;
-                p.y = selection_y;
-                data.nodes.push(p);
+        data = patch;
+        for (let i = 0; i < data.nodes.length; ++i) {
+            let d = data.nodes[i];
+            if (d.fixed) {
+                d.fx = d.x;
+                d.fy = d.y;
             }
         }
-        // ....
 
         update(0.6);
         Storage.set("net", data);
@@ -300,16 +337,16 @@ Promise.all([promise]).then(promises => {
     document.onkeydown = function (event) {
         var key = event.keyCode;
         if (key == 13) {
-            reduce_button.click();
-        } else if (key == 65) {
+            load_button.click();
+        } else if (key == 65 && selection != undefined) {
             auto_choice.click();
             dropdown_button.click();
             reduce_button.click();
-        } else if (key == 68) {
+        } else if (key == 68 && selection != undefined) {
             duplicate_choice.click();
             dropdown_button.click();
             reduce_button.click();
-        } else if (key == 67) {
+        } else if (key == 67 && selection != undefined) {
             cancel_choice.click();
             dropdown_button.click();
             reduce_button.click();
@@ -328,6 +365,9 @@ Promise.all([promise]).then(promises => {
                     agents_visited += 1;
                 }
             });
+        } else if (key >= 48 && key <= 57 && selection != undefined) {
+            let d = data.nodes.filter(d => d.id === selection)[0];
+            d.label = "" + (key - 48);
         }
     };
 
@@ -335,6 +375,7 @@ Promise.all([promise]).then(promises => {
         if (!d3.event.active) simulation.alphaTarget(0.3).restart();
         d.fx = d.x;
         d.fy = d.y;
+        d.fixed = true;
     }
 
     function dragged(d) {
@@ -344,8 +385,6 @@ Promise.all([promise]).then(promises => {
 
     function dragended(d) {
         if (!d3.event.active) simulation.alphaTarget(0);
-        //d.fx = null;
-        //d.fy = null;
     }
 });
 
