@@ -15,5 +15,6 @@ package-lock.json
 **/**/pkg
 *.log
 
+.vscode
 **/**/.DS_Store
 **/**/bin

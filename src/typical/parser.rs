@@ -86,12 +86,22 @@ impl<'a> Parser<'a> {
         let mut trees = VecDeque::new();
         loop {
             let part = match self.lexer.next() {
-                Some(Token::OpenParen) => { self.stack.push(Token::OpenParen); self.parse_application()? },
+                Some(Token::OpenParen) => { 
+                    self.stack.push(Token::OpenParen);
+                    let result = self.parse_application()?;
+                    match self.lexer.next() {
+                        Some(Token::CloseParen) => {
+                            self.stack.pop();
+                            result
+                        },
+                        _ => return Err(ParseError::UnclosedParen)
+                    }
+                },
                 Some(Token::Lambda) => self.parse_abstraction()?,
                 Some(Token::Name(start, length)) => self.parse_name(start, length)?,
                 Some(Token::CloseParen) => {
                     if !self.stack.is_empty() {
-                        self.stack.pop();
+                        self.lexer.backtrack(1);
                         break 
                     } else { 
                         return Err(ParseError::UnopenedParen)
@@ -127,4 +137,3 @@ impl<'a> Parser<'a> {
         self.parse_application()
     }
 }
-
