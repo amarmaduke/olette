@@ -376,7 +376,6 @@ Promise.all([promise]).then(promises => {
         reduce_auto_button.setAttribute("disabled", "");
     }
     function cancel() {
-        console.log("hello world");
         continue_reduce = false;
     }
 
@@ -459,3 +458,6 @@ function toDegrees (angle) {
 function toRadians (angle) {
     return angle * (Math.PI / 180);
 }
+
+// back  taking snapshots of graph
+//calling update_net to sync
