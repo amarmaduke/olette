@@ -2,12 +2,16 @@
 // asynchronously. This `bootstrap.js` file does the single async import, so
 // that no one else needs to worry about it again.
 import * as d3 from 'd3'
-let promise = import("./src/index.js")
+import { setTimeout } from 'timers';
+let promise = import("./src/index.js");
+
 
 const button = document.getElementById('load_button');
 const reduce_button = document.getElementById("reduce_button");
+const reduce_auto_button = document.getElementById("reduce_auto_button");
 const force_on_button = document.getElementById("force_on_button");
 const force_off_button = document.getElementById("force_off_button");
+const cancel_button = document.getElementById("cancel_button");
 const input = document.getElementById("lambda_input");
 const dropdown = document.getElementById("dropdown");
 const dropdown_button = document.getElementById("dropdown_button");
@@ -23,6 +27,8 @@ Promise.all([promise]).then(promises => {
     var simulation, simulation_flag = true;
     var node, link, port, label;
     var data;
+    var continue_reduce = false;
+    
 
     dropdown_button.addEventListener("click", event => {
         event.stopPropagation();
@@ -81,6 +87,8 @@ Promise.all([promise]).then(promises => {
 
     button.addEventListener('click', button_interact(button, load), true);
     reduce_button.addEventListener("click", button_interact(reduce_button, reduce), true);
+    reduce_auto_button.addEventListener("click", button_interact(reduce_auto_button, reduce_auto), true);
+    cancel_button.addEventListener("click", button_interact(cancel_button, cancel), true);
     function button_interact(button, callback) {
         return (element, event) => {
             button.classList.add("is-loading");
@@ -88,6 +96,8 @@ Promise.all([promise]).then(promises => {
             button.classList.remove("is-loading");
         }
     }
+  
+    
 
     var width = document.documentElement.clientWidth;
     var height = document.documentElement.clientHeight;
@@ -278,7 +288,7 @@ Promise.all([promise]).then(promises => {
             previous_wire.color = "#ddd";
         }
         if (d.color === "black") {
-            reduce_button.removeAttribute("disabled");
+            reduce_button.removeAttribute("disabled")
         } else {
             reduce_button.setAttribute("disabled", "");
         }
@@ -298,6 +308,7 @@ Promise.all([promise]).then(promises => {
     function load() {
         clear();
         data = JSON.parse(olette.load_net(input.value));
+        reduce_auto_button.removeAttribute("disabled");
         update(1.0);
         Storage.set("net", data);
     }
@@ -331,6 +342,37 @@ Promise.all([promise]).then(promises => {
         Storage.set("net", data);
         selection = undefined;
         reduce_button.setAttribute("disabled", "");
+    }
+    function reduce_auto() {
+        // iterate over all the nodes in data.nodes
+        // call a rust function to see if it is in a critical pair
+        // if yes, set the selection variable to the current node and reduce
+        // repeat until there are no critical pairs to reduce
+        continue_reduce = true;
+        for (let i = 0; i < data.nodes.length; ++i) {
+            if (continue_reduce == false) {
+                update(1.0);
+                Storage.set("net", data);
+                break;
+            }
+            else{
+                    let d = data.nodes[i];
+
+                    clicked(d);
+                    update(1.0);
+                    Storage.set("net", data);
+                    if (!reduce_button.hasAttribute("disabled")) {
+                        reduce_button.click();
+                        setTimeout(function () {
+                            reduce_auto_button.click();
+                        }, 1500);  
+
+                    }
+                }
+        }       
+    }
+    function cancel() {
+        continue_reduce = false;
     }
 
     var agents_visited = -1;
