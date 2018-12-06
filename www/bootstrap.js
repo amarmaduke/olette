@@ -18,6 +18,7 @@ const dropdown_button = document.getElementById("dropdown_button");
 const auto_choice = document.getElementById("auto");
 const duplicate_choice = document.getElementById("duplicate");
 const cancel_choice = document.getElementById("cancel");
+var continue_reduce = false;
 
 Promise.all([promise]).then(promises => {
     var olette = promises[0];
@@ -27,7 +28,7 @@ Promise.all([promise]).then(promises => {
     var simulation, simulation_flag = true;
     var node, link, port, label;
     var data;
-    var continue_reduce = false;
+    
     
 
     dropdown_button.addEventListener("click", event => {
@@ -309,6 +310,7 @@ Promise.all([promise]).then(promises => {
         clear();
         data = JSON.parse(olette.load_net(input.value));
         reduce_auto_button.removeAttribute("disabled");
+        continue_reduce = true;
         update(1.0);
         Storage.set("net", data);
     }
@@ -348,7 +350,7 @@ Promise.all([promise]).then(promises => {
         // call a rust function to see if it is in a critical pair
         // if yes, set the selection variable to the current node and reduce
         // repeat until there are no critical pairs to reduce
-        continue_reduce = true;
+        
         for (let i = 0; i < data.nodes.length; ++i) {
             if (continue_reduce == false) {
                 update(1.0);
@@ -366,12 +368,15 @@ Promise.all([promise]).then(promises => {
                         setTimeout(function () {
                             reduce_auto_button.click();
                         }, 1500);  
-
+                        break;
                     }
+
                 }
-        }       
+        }
+        reduce_auto_button.setAttribute("disabled", "");
     }
     function cancel() {
+        console.log("hello world");
         continue_reduce = false;
     }
 
