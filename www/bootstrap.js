@@ -289,7 +289,7 @@ Promise.all([promise]).then(promises => {
             previous_wire.color = "#ddd";
         }
         if (d.color === "black") {
-            reduce_button.removeAttribute("disabled")
+            reduce_button.removeAttribute("disabled");
         } else {
             reduce_button.setAttribute("disabled", "");
         }
