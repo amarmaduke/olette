@@ -18,7 +18,11 @@ const dropdown_button = document.getElementById("dropdown_button");
 const auto_choice = document.getElementById("auto");
 const duplicate_choice = document.getElementById("duplicate");
 const cancel_choice = document.getElementById("cancel");
+const time_input = document.getElementById("time_input");
+const timer_set_button = document.getElementById("timer_set_button");
+
 var continue_reduce = false;
+var time_delay = 1500;
 
 Promise.all([promise]).then(promises => {
     var olette = promises[0];
@@ -87,9 +91,16 @@ Promise.all([promise]).then(promises => {
     });
 
     button.addEventListener('click', button_interact(button, load), true);
+
     reduce_button.addEventListener("click", button_interact(reduce_button, reduce), true);
+
     reduce_auto_button.addEventListener("click", button_interact(reduce_auto_button, reduce_auto), true);
+
     cancel_button.addEventListener("click", button_interact(cancel_button, cancel), true);
+
+    timer_set_button.addEventListener("click", button_interact(timer_set_button, timer_set), true);
+
+
     function button_interact(button, callback) {
         return (element, event) => {
             button.classList.add("is-loading");
@@ -346,10 +357,6 @@ Promise.all([promise]).then(promises => {
         reduce_button.setAttribute("disabled", "");
     }
     function reduce_auto() {
-        // iterate over all the nodes in data.nodes
-        // call a rust function to see if it is in a critical pair
-        // if yes, set the selection variable to the current node and reduce
-        // repeat until there are no critical pairs to reduce
         
         for (let i = 0; i < data.nodes.length; ++i) {
             if (continue_reduce == false) {
@@ -367,7 +374,7 @@ Promise.all([promise]).then(promises => {
                         reduce_button.click();
                         setTimeout(function () {
                             reduce_auto_button.click();
-                        }, 1500);  
+                        }, time_delay);  
                         break;
                     }
 
@@ -377,6 +384,14 @@ Promise.all([promise]).then(promises => {
     }
     function cancel() {
         continue_reduce = false;
+    }
+
+    function timer_set() {
+        //var type_input = typeof time_input.value;
+        //console.log(type_input);
+        if (!isNaN(time_input.value)) {
+            time_delay = time_input.value * 1000;
+        }
     }
 
     var agents_visited = -1;
