@@ -1,4 +1,3 @@
-
 extern crate cfg_if;
 extern crate wasm_bindgen;
 #[macro_use]
@@ -14,8 +13,10 @@ mod lexer;
 mod typical;
 
 use abstract_algorithm::*;
+use typical::*;
 use wasm_bindgen::prelude::*;
 use std::sync::Mutex;
+use std::collections::HashMap;
 
 lazy_static! {
     static ref NET : Mutex<Net> = Mutex::new(Net::new());
@@ -45,7 +46,18 @@ pub fn reduce(index : usize, requested_kind : &str) -> String {
         _ => RuleKind::None
     };
     net.reduction_step(index, kind);
-    log(format!("{:?}", *net).as_str());
+    let tree = net.to_tree();
+    let map = HashMap::new();
+    match tree {
+        Some(tree) => {
+            log(format!("{:?}", tree.to_string(&map)).as_str());
+            let mut gas = 1000;
+            let reduced = Tree::reduce_with_gas(tree, &mut gas);
+            let map = HashMap::new();
+            log(format!("Reduced with {} remaining gas: {:?}", gas, reduced.to_string(&map)).as_str());
+        },
+        None => log("No Valid Read Back.")
+    }
     net.to_json()
 }
 
@@ -56,18 +68,22 @@ pub fn load_net(term : &str) -> String {
     let lexer = lexer::Lexer::new(input);
     let mut parser = typical::Parser::new(input, lexer);
     let tree_result = parser.parse();
-    let names = parser.names_map();
+    let _names = parser.names_map();
 
     match tree_result {
         Ok(mut tree) => {
             tree.canonicalize_names();
             *net = abstract_algorithm::Net::from_tree(&tree);
-            log(format!("{:?}", *net).as_str());
+            let map = HashMap::new();
+            log(format!("{:?}", tree.to_string(&map)).as_str());
+            let mut gas = 1000;
+            let reduced = Tree::reduce_with_gas(tree, &mut gas);
+            let map = HashMap::new();
+            log(format!("Reduced with {} remaining gas: {:?}", gas, reduced.to_string(&map)).as_str());
             let result = net.to_json();
-            log(format!("{}", result).as_str());
             result
         },
-        Err(e) => {
+        Err(_) => {
             "Error".to_string()
         }
     }

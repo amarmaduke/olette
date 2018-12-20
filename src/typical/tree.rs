@@ -19,7 +19,7 @@ impl Tree {
     fn to_string_helper(&self, in_abstraction : bool, names : &HashMap<isize, &str>) -> String {
         let mut result = String::new();
         match self {
-            Tree::Var(id, _) => result.push_str(names.get(id).unwrap_or(&"MissingId")),
+            Tree::Var(id, _) => result.push_str(names.get(id).unwrap_or(&id.to_string().as_str())),
             Tree::Abs(id, _, expr) => {
                 if !in_abstraction {
                     result.push_str(&"λ");
@@ -31,7 +31,7 @@ impl Tree {
                     false
                 };
 
-                result.push_str(names.get(id).unwrap_or(&"MissingId"));
+                result.push_str(names.get(id).unwrap_or(&id.to_string().as_str()));
                 if continued {
                     result.push(' ');
                 } else {
@@ -108,6 +108,18 @@ impl Tree {
         }
     }
 
+    pub fn reduce_with_gas(tree : Tree, gas : &mut usize) -> Tree {
+        let mut result = tree;
+        loop {
+            result = Tree::reduction_step(result);
+            if result.is_normal() { break; }
+            if *gas <= 0 { break; }
+            *gas -= 1;
+        }
+        result
+    }
+
+    #[allow(dead_code)]
     pub fn reduce_with_timeout(tree : Tree, timeout : Duration) -> Result<(Tree, Duration), Tree> {
         let timer = Instant::now();
         let mut result = tree;

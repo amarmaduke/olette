@@ -307,6 +307,82 @@ impl Net {
         result.to_string()
     }
 
+    pub fn partner(&self, agent_id : usize, wire_id : usize) -> usize {
+        let wire = self.wire(wire_id);
+        if agent_id == wire.source {
+            wire.target
+        } else {
+            wire.source
+        }
+    }
+
+    pub fn to_tree(&self) -> Option<Tree> {
+        let mut map = HashMap::new();
+        self.to_tree_helper(1, self.agent(1)[0], &mut map)
+    }
+
+    pub fn to_tree_helper(&self, aid : usize, wid : usize, oracle : &mut HashMap<String, usize>) -> Option<Tree> {
+        use AgentKind::*;
+        let agent = self.agent(aid);
+        match agent.kind {
+            Root => {
+                let next_id = self.partner(aid, agent[0]);
+                self.to_tree_helper(next_id, agent[0], oracle)
+            },
+            Application => {
+                let left_id = self.partner(aid, agent[0]);
+                let right_id = self.partner(aid, agent[2]);
+                let left = self.to_tree_helper(left_id, agent[0], oracle);
+                let right = self.to_tree_helper(right_id, agent[2], oracle);
+                if let Some(le) = left {
+                    if let Some(ri) = right {
+                        Some(Tree::App(
+                            Box::new(le),
+                            Box::new(ri)
+                        ))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            },
+            Lambda => {
+                let port = self.agent(aid).port_of(wid);
+                let _id = aid as isize;
+                if port == 0 {
+                    let body_id = self.partner(aid, agent[1]);
+                    let body = self.to_tree_helper(body_id, agent[1], oracle);
+                    if let Some(b) = body {
+                        Some(Tree::Abs(_id, _id, Box::new(b)))
+                    } else {
+                        None
+                    }
+                } else {
+                    Some(Tree::Var(_id, _id))
+                }
+            },
+            Duplicator => {
+                let port = self.agent(aid).port_of(wid);
+                if port == 0 {
+                    if let Some(&p) = oracle.get(&agent.label) {
+                        let body_id = self.partner(aid, agent[p]);
+                        self.to_tree_helper(body_id, agent[p], oracle)
+                    } else {
+                        None
+                    }
+                } else {
+                    let body_id = self.partner(aid, agent[0]);
+                    oracle.insert(agent.label.clone(), port);
+                    self.to_tree_helper(body_id, agent[0], oracle)
+                }
+            },
+            Eraser => {
+                unreachable!("Impossible.");
+            }
+        }
+    }
+
     pub fn from_tree(tree : &Tree) -> Net {
         let mut net = Net::new();
         let mut map = HashMap::new();
