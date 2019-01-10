@@ -2,18 +2,27 @@
 // asynchronously. This `bootstrap.js` file does the single async import, so
 // that no one else needs to worry about it again.
 import * as d3 from 'd3'
-let promise = import("./src/index.js")
+import { setTimeout } from 'timers';
+let promise = import("./src/index.js");
+
 
 const button = document.getElementById('load_button');
 const reduce_button = document.getElementById("reduce_button");
+const reduce_auto_button = document.getElementById("reduce_auto_button");
 const force_on_button = document.getElementById("force_on_button");
 const force_off_button = document.getElementById("force_off_button");
+const cancel_button = document.getElementById("cancel_button");
 const input = document.getElementById("lambda_input");
 const dropdown = document.getElementById("dropdown");
 const dropdown_button = document.getElementById("dropdown_button");
 const auto_choice = document.getElementById("auto");
 const duplicate_choice = document.getElementById("duplicate");
 const cancel_choice = document.getElementById("cancel");
+const time_input = document.getElementById("time_input");
+const timer_set_button = document.getElementById("timer_set_button");
+
+var continue_reduce = false;
+var time_delay = 1500;
 
 Promise.all([promise]).then(promises => {
     var olette = promises[0];
@@ -23,6 +32,8 @@ Promise.all([promise]).then(promises => {
     var simulation, simulation_flag = true;
     var node, link, port, label;
     var data;
+    
+    
 
     dropdown_button.addEventListener("click", event => {
         event.stopPropagation();
@@ -80,7 +91,16 @@ Promise.all([promise]).then(promises => {
     });
 
     button.addEventListener('click', button_interact(button, load), true);
+
     reduce_button.addEventListener("click", button_interact(reduce_button, reduce), true);
+
+    reduce_auto_button.addEventListener("click", button_interact(reduce_auto_button, reduce_auto), true);
+
+    cancel_button.addEventListener("click", button_interact(cancel_button, cancel), true);
+
+    timer_set_button.addEventListener("click", button_interact(timer_set_button, timer_set), true);
+
+
     function button_interact(button, callback) {
         return (element, event) => {
             button.classList.add("is-loading");
@@ -88,6 +108,8 @@ Promise.all([promise]).then(promises => {
             button.classList.remove("is-loading");
         }
     }
+  
+    
 
     var width = document.documentElement.clientWidth;
     var height = document.documentElement.clientHeight;
@@ -298,6 +320,8 @@ Promise.all([promise]).then(promises => {
     function load() {
         clear();
         data = JSON.parse(olette.load_net(input.value));
+        reduce_auto_button.removeAttribute("disabled");
+        continue_reduce = true;
         update(1.0);
         Storage.set("net", data);
     }
@@ -331,6 +355,43 @@ Promise.all([promise]).then(promises => {
         Storage.set("net", data);
         selection = undefined;
         reduce_button.setAttribute("disabled", "");
+    }
+    function reduce_auto() {
+        
+        for (let i = 0; i < data.nodes.length; ++i) {
+            if (continue_reduce == false) {
+                update(1.0);
+                Storage.set("net", data);
+                break;
+            }
+            else{
+                    let d = data.nodes[i];
+
+                    clicked(d);
+                    update(1.0);
+                    Storage.set("net", data);
+                    if (!reduce_button.hasAttribute("disabled")) {
+                        reduce_button.click();
+                        setTimeout(function () {
+                            reduce_auto_button.click();
+                        }, time_delay);  
+                        break;
+                    }
+
+                }
+        }
+        reduce_auto_button.setAttribute("disabled", "");
+    }
+    function cancel() {
+        continue_reduce = false;
+    }
+
+    function timer_set() {
+        //var type_input = typeof time_input.value;
+        //console.log(type_input);
+        if (!isNaN(time_input.value)) {
+            time_delay = time_input.value * 1000;
+        }
     }
 
     var agents_visited = -1;
@@ -412,3 +473,6 @@ function toDegrees (angle) {
 function toRadians (angle) {
     return angle * (Math.PI / 180);
 }
+
+// back  taking snapshots of graph
+//calling update_net to sync

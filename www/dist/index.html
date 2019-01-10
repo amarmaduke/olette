@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
@@ -32,49 +32,62 @@
     <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
   </head>
   <body>
-    <div class="container is-fluid" style="padding-top: 10px;">
-      <div class="field is-grouped">
-        <p class="control is-expanded">
-          <input id="lambda_input" class="input" type="text" placeholder="λx y. x or \x y. y">
-        </p>
-        <p class="control">
-          <a id="load_button" class="button is-primary"> Load </a>
-        </p>
-        <p class="control">
-          <a id="reduce_button" class="button is-danger" disabled> Reduce </a>
-        </p>
-        <p class="control">
-          <a id="force_on_button" class="button is-primary"> Force On </a>
-        </p>
-        <p class="control">
-          <a id="force_off_button" class="button is-primary"> Force Off </a>
-        </p>
-        <p class="control">
-          <div id="dropdown" class="dropdown">
-            <div class="dropdown-trigger">
-              <button id="dropdown_button" class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-                <span>Choose a Rule</span>
-                <span class="icon is-small">
-                  <i class="fas fa-angle-down" aria-hidden="true"></i>
-                </span>
-              </button>
-            </div>
-            <div class="dropdown-menu" id="dropdown-menu" role="menu">
-              <div class="dropdown-content">
-                <a id="auto" class="dropdown-item is-active">
-                  Automatically Decide Rule
-                </a>
-                <a id="cancel" class="dropdown-item">
-                  Use Cancel Rule
-                </a>
-                <a id="duplicate" class="dropdown-item">
-                  Use Duplicate Rule
-                </a>
-              </div>
-            </div>
-          </div>
-        </p>
-      </div>
+    <div class="container is-fluid" style="padding-bottom:10px; padding-top:10px; background-color:	#C0C0C0;" >
+        <center>
+        <h>
+            <strong> Optimal Lambda Evaluation Toy</strong>
+        </h>
+        </center>
+    </div>
+    <div class="container is-fluid" style="padding-top: 10px; background-color:#F5F5F5;">
+        <div class="field is-grouped">
+            <p class="control is-expanded">
+                <input id="lambda_input" class="input" type="text" placeholder="λx y. x or \x y. y">
+            </p>
+            <p class="control">
+                <a id="load_button" class="button is-primary" > Load </a>
+            </p>
+            <p class="control">
+                <a id="reduce_button" class="button is-danger" disabled> Reduce </a>
+            </p>
+            <p class="control">
+                <a id="reduce_auto_button" class="button is-danger" disabled> Auto Reduce  </a>
+            </p>
+            <p class="control">
+                <a id="force_on_button" class="button is-primary"> Force On </a>
+            </p>
+            <p class="control">
+                <a id="force_off_button" class="button is-primary"> Force Off </a>
+            </p>
+            <p class="control">
+                <a id="cancel_button" class="button is-primary"> Cancel </a>
+            </p>
+            <p class="control">
+                <div id="dropdown" class="dropdown">
+                    <div class="dropdown-trigger">
+                        <button id="dropdown_button" class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                            <span>Choose a Rule</span>
+                            <span class="icon is-small">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                            <a id="auto" class="dropdown-item is-active">
+                                Automatically Decide Rule
+                            </a>
+                            <a id="cancel" class="dropdown-item">
+                                Use Cancel Rule
+                            </a>
+                            <a id="duplicate" class="dropdown-item">
+                                Use Duplicate Rule
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </p>
+        </div>
     </section>
     <div class="net"></div>
   </body>
