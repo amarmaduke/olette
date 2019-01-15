@@ -400,21 +400,21 @@ Promise.all([promise]).then(promises => {
 
         update(0.6);
         Storage.set("net", data);
-        history.add(data);
         selection = undefined;
+        history.add(data);
         reduce_button.setAttribute("disabled", "");
     }
     function reduce_auto() {
-        
         for (let i = 0; i < data.nodes.length; ++i) {
             reduce_auto_button.setAttribute("disabled", "");
             if (continue_reduce == false) {
                 reduce_auto_button.removeAttribute("disabled");
+                continue_reduce = true;
                 update(1.0);
                 Storage.set("net", data);
                 break;
             }
-            else{
+            else {
                     let d = data.nodes[i];
 
                     clicked(d);
@@ -431,7 +431,6 @@ Promise.all([promise]).then(promises => {
 
                 }
         }
-
     }
     function cancel() {
         continue_reduce = false;
@@ -444,13 +443,17 @@ Promise.all([promise]).then(promises => {
     }
 
     function back() {
-        clear();
         if (history.cur.prev != null) {
             history.cur = history.cur.prev;
         }
         data = history.cur.value;
         update(1.0);
         Storage.set("net", data);
+        for (let i = 0; i < data.nodes.length; ++i) {
+            data.nodes[i].color = "black";
+        }
+        
+        
     }
 
     var agents_visited = -1;
