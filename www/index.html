@@ -50,7 +50,7 @@
                     <a id="load_button" class="button is-primary"> Load </a>
                 </p>
             </div>
-            <div class=" field is-grouped"  style="padding-left: 30px; padding-right: 30px;">
+            <div class=" field is-grouped" style="padding-left: 180px; padding-right: 30px;">
                 <p class="control">
                     <a id="reduce_button" class="button is-danger" disabled> Reduce </a>
                 </p>
@@ -65,6 +65,9 @@
                 </p>
                 <p class="control">
                     <a id="cancel_button" class="button is-primary"> Cancel </a>
+                </p>
+                <p class="control">
+                    <a id="back_button" class="button is-primary"> Back </a>
                 </p>
                 <p class="control">
                     <div id="dropdown" class="dropdown">
@@ -91,13 +94,37 @@
                         </div>
                     </div>
                 </p>
-            <p class="control is-expanded" style=" padding-left:10px;" >
-                <input id="time_input" class="input" type="text" placeholder="1.5">
-            </p>
-            <p class="control">
-                <a id="timer_set_button" class="button is-primary"> Set Time (Seconds) </a>
-            </p>
-        </div>
+                <p class="control">
+                    <div id="slider" class="dropdown">
+                        <div class="dropdown-trigger">
+                            <button id="slider_button" class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                                <span>Time Options</span>
+                                <span class="icon is-small">
+                                    <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="dropdown-menu" id="slider-menu" role="menu">
+                            <div class="dropdown-content">
+                                <a id="timer_input" class="dropdown-item">
+                                    Time Delay:
+                                </a>
+                                <a id="timer_feild" class="dropdown-item">
+                                    <center>
+                                        <input id="time_input" class="input" type="text" placeholder="1.5">
+                                    </center>
+                                </a>
+                                <a id="time_set_option" class="dropdown-item">
+                                    <center>
+                                        <a id="timer_set_button" class="button is-primary"> Set Time (Seconds) </a>
+                                    </center>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </p>
+
+            </div>
      </div>
    <div class="net"></div>
 </body>

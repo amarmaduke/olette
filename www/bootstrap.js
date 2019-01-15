@@ -12,17 +12,55 @@ const reduce_auto_button = document.getElementById("reduce_auto_button");
 const force_on_button = document.getElementById("force_on_button");
 const force_off_button = document.getElementById("force_off_button");
 const cancel_button = document.getElementById("cancel_button");
+const back_button = document.getElementById("back_button");
 const input = document.getElementById("lambda_input");
 const dropdown = document.getElementById("dropdown");
 const dropdown_button = document.getElementById("dropdown_button");
 const auto_choice = document.getElementById("auto");
 const duplicate_choice = document.getElementById("duplicate");
 const cancel_choice = document.getElementById("cancel");
+const slider = document.getElementById("slider");
+const slider_button = document.getElementById("slider_button");
+const timer_input = document.getElementById("timer_input");
 const time_input = document.getElementById("time_input");
 const timer_set_button = document.getElementById("timer_set_button");
 
 var continue_reduce = false;
 var time_delay = 1500;
+
+class Node {
+    constructor(value, next, prev) {
+        this.value = value;
+        this.next = next;
+        this.prev = prev;
+    }
+}
+
+class LinkedList {
+    constructor() {
+        this.head = null;
+        this.tail = null;
+        this.cur = null;
+        this.size = 0;
+    }
+
+    add(value) {
+        const node = new Node(value, null, this.tail);
+        this.size++;
+        if (this.head == null) {
+            this.head = node;
+            this.tail = node;
+        }
+        else {
+            this.tail.next = node;
+        }
+        this.tail = node;
+        this.cur = this.tail;
+
+        
+    }
+}
+var history = new LinkedList();
 
 Promise.all([promise]).then(promises => {
     var olette = promises[0];
@@ -90,6 +128,11 @@ Promise.all([promise]).then(promises => {
         dropdown.classList.toggle("is-active");
     });
 
+    slider_button.addEventListener("click", event => {
+        event.stopPropagation();
+        slider.classList.toggle("is-active");
+    });
+
     button.addEventListener('click', button_interact(button, load), true);
 
     reduce_button.addEventListener("click", button_interact(reduce_button, reduce), true);
@@ -97,6 +140,8 @@ Promise.all([promise]).then(promises => {
     reduce_auto_button.addEventListener("click", button_interact(reduce_auto_button, reduce_auto), true);
 
     cancel_button.addEventListener("click", button_interact(cancel_button, cancel), true);
+
+    back_button.addEventListener("click", button_interact(back_button, back), true);
 
     timer_set_button.addEventListener("click", button_interact(timer_set_button, timer_set), true);
 
@@ -324,6 +369,8 @@ Promise.all([promise]).then(promises => {
         continue_reduce = true;
         update(1.0);
         Storage.set("net", data);
+        history.add(data);
+       
     }
 
     function reduce() {
@@ -353,13 +400,16 @@ Promise.all([promise]).then(promises => {
 
         update(0.6);
         Storage.set("net", data);
+        history.add(data);
         selection = undefined;
         reduce_button.setAttribute("disabled", "");
     }
     function reduce_auto() {
         
         for (let i = 0; i < data.nodes.length; ++i) {
+            reduce_auto_button.setAttribute("disabled", "");
             if (continue_reduce == false) {
+                reduce_auto_button.removeAttribute("disabled");
                 update(1.0);
                 Storage.set("net", data);
                 break;
@@ -371,6 +421,7 @@ Promise.all([promise]).then(promises => {
                     update(1.0);
                     Storage.set("net", data);
                     if (!reduce_button.hasAttribute("disabled")) {
+
                         reduce_button.click();
                         setTimeout(function () {
                             reduce_auto_button.click();
@@ -380,18 +431,26 @@ Promise.all([promise]).then(promises => {
 
                 }
         }
-        reduce_auto_button.setAttribute("disabled", "");
+
     }
     function cancel() {
         continue_reduce = false;
     }
 
     function timer_set() {
-        //var type_input = typeof time_input.value;
-        //console.log(type_input);
         if (!isNaN(time_input.value)) {
             time_delay = time_input.value * 1000;
         }
+    }
+
+    function back() {
+        clear();
+        if (history.cur.prev != null) {
+            history.cur = history.cur.prev;
+        }
+        data = history.cur.value;
+        update(1.0);
+        Storage.set("net", data);
     }
 
     var agents_visited = -1;
