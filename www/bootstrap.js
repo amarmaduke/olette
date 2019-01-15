@@ -13,6 +13,7 @@ const force_on_button = document.getElementById("force_on_button");
 const force_off_button = document.getElementById("force_off_button");
 const cancel_button = document.getElementById("cancel_button");
 const back_button = document.getElementById("back_button");
+const forward_button = document.getElementById("forward_button");
 const input = document.getElementById("lambda_input");
 const dropdown = document.getElementById("dropdown");
 const dropdown_button = document.getElementById("dropdown_button");
@@ -142,6 +143,8 @@ Promise.all([promise]).then(promises => {
     cancel_button.addEventListener("click", button_interact(cancel_button, cancel), true);
 
     back_button.addEventListener("click", button_interact(back_button, back), true);
+
+    forward_button.addEventListener("click", button_interact(forward_button, forward), true);
 
     timer_set_button.addEventListener("click", button_interact(timer_set_button, timer_set), true);
 
@@ -452,8 +455,29 @@ Promise.all([promise]).then(promises => {
         for (let i = 0; i < data.nodes.length; ++i) {
             data.nodes[i].color = "black";
         }
-        
-        
+        for (let i = 0; i < data.links.length; ++i) {
+            data.links[i].color = "#ddd";
+        }
+        selection = undefined;
+        selection_x = undefined;
+        selection_y = undefined;
+    }
+    function forward() {
+        if (history.cur.next != null) {
+            history.cur = history.cur.next;
+        }
+        data = history.cur.value;
+        update(1.0);
+        Storage.set("net", data);
+        for (let i = 0; i < data.nodes.length; ++i) {
+            data.nodes[i].color = "black";
+        }
+        for (let i = 0; i < data.links.length; ++i) {
+            data.links[i].color = "#ddd";
+        }
+        selection = undefined;
+        selection_x = undefined;
+        selection_y = undefined;
     }
 
     var agents_visited = -1;
