@@ -1,5 +1,4 @@
-use std::collections::{VecDeque, HashMap};
-use std::str;
+use std::collections::VecDeque;
 
 use typical::Tree;
 use lexer::{Lexer, Token};
@@ -11,6 +10,7 @@ pub enum ParseError {
     UnopenedParen,
     EmptyExpression,
     EmptyAbstraction,
+    EmptyName,
     ParenInAbstraction,
     NestedAbstraction
 }
@@ -18,37 +18,22 @@ pub enum ParseError {
 pub struct Parser<'a> {
     input : &'a [u8],
     lexer :  Lexer<'a>,
-    stack : Vec<Token>,
-    names : HashMap<&'a [u8], isize>,
-    id : isize
+    stack : Vec<Token>
 }
 
 impl<'a> Parser<'a> {
 
     pub fn new(input : &'a [u8], lexer : Lexer<'a>) -> Parser<'a> {
-        Parser { input, lexer, stack: vec![], names: HashMap::new(), id: 0 }
-    }
-
-    pub fn names_map(&self) -> HashMap<isize, &str> {
-        let mut map = HashMap::new();
-        for (key, value) in self.names.iter() {
-            map.insert(*value, str::from_utf8(*key).unwrap_or("InvalidUTF8"));
-        }
-        map
+        Parser { input, lexer, stack: vec![] }
     }
 
     fn parse_name(&mut self, start : usize, length : usize) -> Result<Tree, ParseError> {
-        if let Some(name) = self.input.get(start..(start+length)) {
-            if let Some(&id) = self.names.get(name) {
-                Ok(Tree::Var(id, id))
-            } else {
-                self.id += 1;
-                self.names.insert(name, self.id);
-                Ok(Tree::Var(self.id, self.id))
-            }
+        if length > 0 {
+            let byte_name = self.input.get(start..(start+length)).expect("Lexer failed to lex name.");
+            let name = String::from_utf8(byte_name.to_vec()).expect("Bytes of name are not valid utf8.");
+            Ok(Tree::Var(name, 0))
         } else {
-            // Less obvious to as why, if we reach here then the lexer is fatally bugged, so just panic
-            unreachable!();
+            Err(ParseError::EmptyName)
         }
     }
 
@@ -73,9 +58,9 @@ impl<'a> Parser<'a> {
                     Tree::Var(id, _) => id,
                     _ => unreachable!()
                 };
-                let mut accumulator = Tree::Abs(id, id, Box::new(body));
+                let mut accumulator = Tree::Abs(id, Box::new(body));
                 while let Some(Tree::Var(id, _)) = names.pop() {
-                    accumulator = Tree::Abs(id, id, Box::new(accumulator));
+                    accumulator = Tree::Abs(id, Box::new(accumulator));
                 }
                 Ok(accumulator)
             }
@@ -132,8 +117,8 @@ impl<'a> Parser<'a> {
         }
     }
 
-    #[inline(always)]
     pub fn parse(&mut self) -> Result<Tree, ParseError> {
-        self.parse_application()
+        let result = self.parse_application();
+        result.map(|x| Tree::fix_indices(x))
     }
 }

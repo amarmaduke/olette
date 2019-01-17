@@ -318,7 +318,8 @@ impl Net {
 
     pub fn to_tree(&self) -> Option<Tree> {
         let mut map = HashMap::new();
-        self.to_tree_helper(1, self.agent(1)[0], &mut map)
+        let result = self.to_tree_helper(1, self.agent(1)[0], &mut map);
+        result.map(|x| Tree::fix_indices(x))
     }
 
     pub fn to_tree_helper(&self, aid : usize, wid : usize, oracle : &mut HashMap<String, usize>) -> Option<Tree> {
@@ -349,17 +350,16 @@ impl Net {
             },
             Lambda => {
                 let port = self.agent(aid).port_of(wid);
-                let _id = aid as isize;
                 if port == 0 {
                     let body_id = self.partner(aid, agent[1]);
                     let body = self.to_tree_helper(body_id, agent[1], oracle);
                     if let Some(b) = body {
-                        Some(Tree::Abs(_id, _id, Box::new(b)))
+                        Some(Tree::Abs(aid.to_string(), Box::new(b)))
                     } else {
                         None
                     }
                 } else {
-                    Some(Tree::Var(_id, _id))
+                    Some(Tree::Var(aid.to_string(), 0))
                 }
             },
             Duplicator => {
@@ -386,10 +386,11 @@ impl Net {
     pub fn from_tree(tree : &Tree) -> Net {
         let mut net = Net::new();
         let mut map = HashMap::new();
+        let tree = tree.canonicalize_names();
         let root_id = net.add_agent(Agent::new(AgentKind::Root, vec![0]));
         let root_wire = net.add_wire(Wire::new(root_id, 0));
         net.mut_agent(root_id)[0] = root_wire;
-        let remaining = net.from_tree_helper(tree, root_wire, &mut map);
+        let remaining = net.from_tree_helper(&tree, root_wire, &mut map);
         net.mut_wire(root_wire).target = remaining;
         net.fix_dangling_lambdas();
         net
@@ -411,11 +412,10 @@ impl Net {
         }
     }
 
-    fn from_tree_helper(&mut self, tree : &Tree, dangling : usize, name_map : &mut HashMap<usize, usize>) -> usize {
+    fn from_tree_helper(&mut self, tree : &Tree, dangling : usize, name_map : &mut HashMap<String, usize>) -> usize {
         match tree {
-            Tree::Var(id_isize, _) => {
-                let id = *id_isize as usize;
-                let lambda_id = *name_map.get(&id).expect("Free variables are not supported.");
+            Tree::Var(id, _index) => {
+                let lambda_id = *name_map.get(&id.clone()).expect("Free variables are not supported.");
 
                 if self.agent(lambda_id)[2] == 0 {
                     self.mut_agent(lambda_id)[2] = dangling;
@@ -439,14 +439,12 @@ impl Net {
                     dup_id
                 }
             },
-            Tree::Abs(id_isize, _, body) => {
-                let id = *id_isize as usize;
-
+            Tree::Abs(id, body) => {
                 let lambda_id = self.add_agent(Agent::new(AgentKind::Lambda, vec![0, 0, 0]));
                 let body_wire = self.add_wire(Wire::new(lambda_id, 0));
                 self.mut_agent(lambda_id).update(vec![dangling, body_wire, 0]);
 
-                name_map.insert(id, lambda_id);
+                name_map.insert(id.clone(), lambda_id);
                 let body_id = self.from_tree_helper(body, body_wire, name_map);
                 self.mut_wire(body_wire).fill(body_id);
                 lambda_id

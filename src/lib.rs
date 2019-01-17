@@ -16,7 +16,6 @@ use abstract_algorithm::*;
 use typical::*;
 use wasm_bindgen::prelude::*;
 use std::sync::Mutex;
-use std::collections::HashMap;
 
 lazy_static! {
     static ref NET : Mutex<Net> = Mutex::new(Net::new());
@@ -47,14 +46,12 @@ pub fn reduce(index : usize, requested_kind : &str) -> String {
     };
     net.reduction_step(index, kind);
     let tree = net.to_tree();
-    let map = HashMap::new();
     match tree {
         Some(tree) => {
-            log(format!("{:?}", tree.to_string(&map)).as_str());
+            log(format!("{:?}", tree.to_string()).as_str());
             let mut gas = 1000;
             let reduced = Tree::reduce_with_gas(tree, &mut gas);
-            let map = HashMap::new();
-            log(format!("Reduced with {} remaining gas: {:?}", gas, reduced.to_string(&map)).as_str());
+            log(format!("Reduced with {} remaining gas: {:?}", gas, reduced.to_string()).as_str());
         },
         None => log("No Valid Read Back.")
     }
@@ -68,18 +65,14 @@ pub fn load_net(term : &str) -> String {
     let lexer = lexer::Lexer::new(input);
     let mut parser = typical::Parser::new(input, lexer);
     let tree_result = parser.parse();
-    let _names = parser.names_map();
 
     match tree_result {
-        Ok(mut tree) => {
-            tree.canonicalize_names();
+        Ok(tree) => {
             *net = abstract_algorithm::Net::from_tree(&tree);
-            let map = HashMap::new();
-            log(format!("{:?}", tree.to_string(&map)).as_str());
+            log(format!("{:?}", tree.to_string()).as_str());
             let mut gas = 1000;
             let reduced = Tree::reduce_with_gas(tree, &mut gas);
-            let map = HashMap::new();
-            log(format!("Reduced with {} remaining gas: {:?}", gas, reduced.to_string(&map)).as_str());
+            log(format!("Reduced with {} remaining gas: {:?}", gas, reduced.to_string()).as_str());
             let result = net.to_json();
             result
         },
