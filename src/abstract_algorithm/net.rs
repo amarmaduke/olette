@@ -200,6 +200,47 @@ pub struct NodeData {
     label: String
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FromJsonData {
+    nodes : Vec<NodeFromJsonData>,
+    links : Vec<LinkFromJsonData>
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NodeFromJsonData {
+    id : usize,
+    x : f32,
+    y : f32,
+    fixed : bool,
+    kind : String,
+    label : String,
+    ports : Vec<usize>,
+    color : String,
+    width : String
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LinkFromJsonDataPortAngles {
+    s : usize,
+    t : usize
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LinkFromJsonDataPortIndices {
+    s : usize,
+    t : usize
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LinkFromJsonData {
+    id : usize,
+    source : usize,
+    target : usize,
+    ports : LinkFromJsonDataPortAngles,
+    p : LinkFromJsonDataPortIndices,
+    force : i32
+}
+
 #[derive(Debug)]
 pub struct Net {
     agent_id : usize,
@@ -225,6 +266,50 @@ impl Net {
             agent.y = node.y;
             agent.fixed = node.fixed;
             agent.label = node.label;
+        }
+    }
+
+    pub fn from_json(data : FromJsonData) -> Net {
+        let mut max_agent_id = 0;
+        let mut max_link_id = 0;
+        let mut agent_map = HashMap::new();
+        let mut link_map = HashMap::new();
+
+        for d in data.nodes {
+            let kind = match d.kind.as_str() {
+                "root" => AgentKind::Root,
+                "eraser" => AgentKind::Eraser,
+                "lambda" => AgentKind::Lambda,
+                "application" => AgentKind::Application,
+                "duplicator" => AgentKind::Duplicator,
+                _ => panic!("Invalid agent kind")
+            };
+            let agent = Agent {
+                kind,
+                label: d.label,
+                x: d.x,
+                y: d.y,
+                fixed: d.fixed,
+                wires: [d.ports[0], d.ports[1], d.ports[2]]
+            };
+            max_agent_id = std::cmp::max(max_agent_id, d.id);
+            agent_map.insert(d.id, agent);
+        }
+
+        for d in data.links {
+            let wire = Wire {
+                source: d.source,
+                target: d.target
+            };
+            max_link_id = std::cmp::max(max_link_id, d.id);
+            link_map.insert(d.id, wire);
+        }
+
+        Net {
+            agent_id: max_agent_id + 1,
+            wire_id: max_link_id + 1,
+            agents: agent_map,
+            wires: link_map
         }
     }
 
@@ -292,6 +377,7 @@ impl Net {
                 }
             };
             links.push(json!({
+                "id": key, // We cheat a little here to make from_json easier
                 "source": idmap.get(&wire.source).unwrap(),
                 "target": idmap.get(&wire.target).unwrap(),
                 "ports": ports,

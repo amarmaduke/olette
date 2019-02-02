@@ -50,6 +50,16 @@ pub fn reduce(index : usize, requested_kind : &str) -> String {
 }
 
 #[wasm_bindgen]
+pub fn rebuild(json : &str) {
+    let data = serde_json::from_str::<FromJsonData>(json)
+        .ok()
+        .expect("Deserialization failed.");
+    let mut net = NET.try_lock()
+        .expect("Locking failed.");
+    *net = Net::from_json(data);
+}
+
+#[wasm_bindgen]
 pub fn load_net(term : &str) -> String {
     let mut net = NET.try_lock().expect("Locking failed.");
     let input = term.as_bytes();
