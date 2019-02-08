@@ -1,70 +1,73 @@
 ﻿<!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-      .links line {
-        stroke: #999;
-        stroke-opacity: 0.6;
-      }
-      .nodes circle {
-        stroke: #fff;
-        stroke-width: 1.5px;
-      }
-      .svg-container {
-        display: inline-block;
-        position: relative;
-        width: 100%;
-        padding-bottom: 50%;
-        vertical-align: top;
-        overflow: hidden;
-      }
-      .svg-content-responsive {
-        display: inline-block;
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
-      </style>
+        .links line {
+            stroke: #999;
+            stroke-opacity: 0.6;
+        }
+
+        .nodes circle {
+            stroke: #fff;
+            stroke-width: 1.5px;
+        }
+
+        .svg-container {
+            display: inline-block;
+            position: relative;
+            width: 100%;
+            padding-bottom: 50%;
+            vertical-align: top;
+            overflow: hidden;
+        }
+
+        .svg-content-responsive {
+            display: inline-block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
     <title>Optimal Lambda Evaluation Toy</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
-  </head>
-  <body>
-    <div class="container is-fluid" style="padding-bottom:10px; padding-top:10px; background-color:	#C0C0C0;" >
+</head>
+<body>
+    <div class="container is-fluid" style="padding-bottom:5px; padding-top:10px; background-color: #203644;">
         <center>
             <h>
-                 <strong><font color="#F5F5F5"> Optimal Lambda Evaluation Toy </font> </strong>
+                <strong><font color="#F5F5F5"> Optimal Lambda Evaluation Toy </font> </strong>
             </h>
-        </center>
-    </div>
-    <div class="container is-fluid" style="background-color: #F5F5F5;">
-        <div> 
-            <div class=" field is-grouped" style="padding-left: 365px; padding-right: 365px; padding-top: 5px; padding-bottom: 5px; background-color:	#F5F5F5;">
+            <div class=" field is-grouped" style="padding-left: 365px; padding-right: 365px; padding-top: 5px; padding-bottom: 5px; background-color:	#203644;">
                 <p class="control is-expanded">
-                        <input id="lambda_input" class="input" type="text" placeholder="λx y. x or \x y. y">
+                    <input id="lambda_input" class="input" type="text" placeholder="λx y. x or \x y. y">
 
                 </p>
                 <p class="control">
-                    <a id="load_button" class="button is-primary"> Load </a>
+                    <a id="load_button" class="button is-primary" style="background-color:#5B9EA6"> Load </a>
                 </p>
             </div>
-            <div class=" field is-grouped"  style="padding-left: 30px; padding-right: 30px;">
+        </center>
+    </div>
+    <div class="container is-fluid" style="background-color: #D0C8B3;">
+        <div>
+            <div class=" field is-grouped" style="padding-left: 210px; padding-right: 110px; padding-top: 5px;">
                 <p class="control">
-                    <a id="reduce_button" class="button is-danger" disabled> Reduce </a>
+                    <a id="reduce_button" class="button is-danger" disabled style="background-color:#752424"> Reduce </a>
                 </p>
                 <p class="control">
-                    <a id="reduce_auto_button" class="button is-danger" disabled> Auto Reduce  </a>
+                    <a id="reduce_auto_button" class="button is-danger" disabled style="background-color:#752424"> Auto Reduce  </a>
                 </p>
                 <p class="control">
-                    <a id="force_on_button" class="button is-primary"> Force On </a>
+                    <a id="cancel_button" class="button is-primary" style="background-color: #5B9EA6"> Cancel </a> <!-- green #73cc99 gray C0C0C0 light gray F5F5F5 beige D0C8B3 -->
                 </p>
                 <p class="control">
-                    <a id="force_off_button" class="button is-primary"> Force Off </a>
+                    <a id="back_button" class="button is-primary" style="background-color: #5B9EA6">  << </a>
                 </p>
                 <p class="control">
-                    <a id="cancel_button" class="button is-primary"> Cancel </a>
+                    <a id="forward_button" class="button is-primary" style="background-color: #5B9EA6"> >> </a>
                 </p>
                 <p class="control">
                     <div id="dropdown" class="dropdown">
@@ -91,15 +94,58 @@
                         </div>
                     </div>
                 </p>
-            <p class="control is-expanded" style=" padding-left:10px;" >
-                <input id="time_input" class="input" type="text" placeholder="1.5">
-            </p>
-            <p class="control">
-                <a id="timer_set_button" class="button is-primary"> Set Time (Seconds) </a>
-            </p>
+                <p class="control">
+                    <div id="slider" class="dropdown">
+                        <div class="dropdown-trigger">
+                            <button id="slider_button" class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                                <span>Time Options</span>
+                                <span class="icon is-small">
+                                    <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="dropdown-menu" id="slider-menu" role="menu">
+                            <div class="dropdown-content">
+                                <a id="timer_feild" class="dropdown-item" style="padding-left:45px;">
+                                    <center>
+                                        Time Delay:<br />
+                                        <input id="time_input" class="input" type="text" placeholder="1.5">
+                                        <a id="timer_set_button" class="button is-primary" style="background-color: #5B9EA6"> Set Time (Seconds) </a>
+                                    </center>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </p>
+                <p class="control">
+                    <div id="graph" class="dropdown">
+                        <div class="dropdown-trigger">
+                            <button id="graph_button" class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                                <span>Graph Options</span>
+                                <span class="icon is-small">
+                                    <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="dropdown-menu" id="graph-menu" role="menu">
+                            <div class="dropdown-content">
+                                <a id="graph_feild" class="dropdown-item" style="padding-left:45px;">
+                                    <center>
+                                        <a id="force_on" class="dropdown-item">
+                                            <a id="force_on_button" class="button is-primary" style="background-color: #5B9EA6"> Force On </a>
+                                        </a>
+                                        <a id="force_off" class="dropdown-item">
+                                            <a id="force_off_button" class="button is-primary" style="background-color: #5B9EA6"> Force Off </a>
+                                        </a>
+                                    </center>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </p>
+            </div>
         </div>
-     </div>
-   <div class="net"></div>
+        <div class="net"></div>
 </body>
-  <script defer src="bootstrap.js"></script>
+<script defer src="bootstrap.js"></script>
 </html>

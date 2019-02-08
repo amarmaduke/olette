@@ -12,17 +12,56 @@ const reduce_auto_button = document.getElementById("reduce_auto_button");
 const force_on_button = document.getElementById("force_on_button");
 const force_off_button = document.getElementById("force_off_button");
 const cancel_button = document.getElementById("cancel_button");
+const back_button = document.getElementById("back_button");
+const forward_button = document.getElementById("forward_button");
 const input = document.getElementById("lambda_input");
 const dropdown = document.getElementById("dropdown");
 const dropdown_button = document.getElementById("dropdown_button");
 const auto_choice = document.getElementById("auto");
 const duplicate_choice = document.getElementById("duplicate");
 const cancel_choice = document.getElementById("cancel");
+const slider = document.getElementById("slider");
+const slider_button = document.getElementById("slider_button");
 const time_input = document.getElementById("time_input");
 const timer_set_button = document.getElementById("timer_set_button");
+const graph = document.getElementById("graph");
+const graph_button = document.getElementById("graph_button");
 
 var continue_reduce = false;
 var time_delay = 1500;
+class Node {
+    constructor(value, next, prev) {
+        this.value = value;
+        this.next = next;
+        this.prev = prev;
+    }
+}
+
+class LinkedList {
+    constructor() {
+        this.head = null;
+        this.tail = null;
+        this.cur = null;
+        this.size = 0;
+    }
+
+    add(value) {
+        const node = new Node(value, null, this.tail);
+        this.size++;
+        if (this.head == null) {
+            this.head = node;
+            this.tail = node;
+        }
+        else {
+            this.tail.next = node;
+        }
+        this.tail = node;
+        this.cur = this.tail;
+
+
+    }
+}
+var history = new LinkedList();
 
 Promise.all([promise]).then(promises => {
     var olette = promises[0];
@@ -32,8 +71,8 @@ Promise.all([promise]).then(promises => {
     var simulation, simulation_flag = true;
     var node, link, port, label;
     var data;
-    
-    
+
+
 
     dropdown_button.addEventListener("click", event => {
         event.stopPropagation();
@@ -90,6 +129,16 @@ Promise.all([promise]).then(promises => {
         dropdown.classList.toggle("is-active");
     });
 
+    slider_button.addEventListener("click", event => {
+        event.stopPropagation();
+        slider.classList.toggle("is-active");
+    });
+
+    graph_button.addEventListener("click", event => {
+        event.stopPropagation();
+        graph.classList.toggle("is-active");
+    });
+
     button.addEventListener('click', button_interact(button, load), true);
 
     reduce_button.addEventListener("click", button_interact(reduce_button, reduce), true);
@@ -97,6 +146,10 @@ Promise.all([promise]).then(promises => {
     reduce_auto_button.addEventListener("click", button_interact(reduce_auto_button, reduce_auto), true);
 
     cancel_button.addEventListener("click", button_interact(cancel_button, cancel), true);
+
+    back_button.addEventListener("click", button_interact(back_button, back), true);
+
+    forward_button.addEventListener("click", button_interact(forward_button, forward), true);
 
     timer_set_button.addEventListener("click", button_interact(timer_set_button, timer_set), true);
 
@@ -108,8 +161,8 @@ Promise.all([promise]).then(promises => {
             button.classList.remove("is-loading");
         }
     }
-  
-    
+
+
 
     var width = document.documentElement.clientWidth;
     var height = document.documentElement.clientHeight;
@@ -124,7 +177,7 @@ Promise.all([promise]).then(promises => {
         .attr("preserveAspectRatio", "xMinYMin meet")
         .attr("viewBox", "0 0 " + width + " " + height)
         //class to make it responsive
-        .classed("svg-content-responsive", true); 
+        .classed("svg-content-responsive", true);
 
     var svg = d3.select("#svg-render")
         .call(d3.zoom().on("zoom", function () {
@@ -186,7 +239,7 @@ Promise.all([promise]).then(promises => {
             .attr("id", d => d.id)
             .on("click", clicked)
             .merge(node);
-            //.append("title", d => d.id)
+        //.append("title", d => d.id)
         node.call(drag);
 
         port = svg.select(".port").selectAll("circle")
@@ -207,8 +260,8 @@ Promise.all([promise]).then(promises => {
         label = label.enter().append("text")
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'central')
-            .style('font-family','Helvetica')
-            .style('font-size','8px')
+            .style('font-family', 'Helvetica')
+            .style('font-size', '8px')
             .style("cursor", "pointer")
             .text(d => d.label)
             .on("click", clicked)
@@ -217,7 +270,7 @@ Promise.all([promise]).then(promises => {
 
         simulation.nodes(data.nodes).on("tick", tick);
         simulation.force("link").links(data.links)
-            .strength(k => k.force * (1/3));
+            .strength(k => k.force * (1 / 3));
         simulation.alphaTarget(alpha).restart();
     }
 
@@ -245,21 +298,21 @@ Promise.all([promise]).then(promises => {
                     p = 3;
                 }
 
-                let tx = r*tx_normal + d.target.x;
-                let ty = r*ty_normal + d.target.y;
-                let sx = r*sx_normal + d.source.x;
-                let sy = r*sy_normal + d.source.y;
+                let tx = r * tx_normal + d.target.x;
+                let ty = r * ty_normal + d.target.y;
+                let sx = r * sx_normal + d.source.x;
+                let sy = r * sy_normal + d.source.y;
 
                 let sangle = Math.atan2(ty - d.source.y, tx - d.source.x)
                     - Math.atan2(sy - d.source.y, sx - d.source.x);
                 let tangle = Math.atan2(sy - d.target.y, sx - d.target.x)
                     - Math.atan2(ty - d.target.y, tx - d.target.x);
-                let flag = Math.abs(sangle) >= Math.PI/4 || Math.abs(tangle) >= Math.PI/4;
+                let flag = Math.abs(sangle) >= Math.PI / 4 || Math.abs(tangle) >= Math.PI / 4;
 
-                let tx_ = p*r*tx_normal + d.target.x;
-                let ty_ = p*r*ty_normal + d.target.y;
-                let sx_ = p*r*sx_normal + d.source.x;
-                let sy_ = p*r*sy_normal + d.source.y;
+                let tx_ = p * r * tx_normal + d.target.x;
+                let ty_ = p * r * ty_normal + d.target.y;
+                let sx_ = p * r * sx_normal + d.source.x;
+                let sy_ = p * r * sy_normal + d.source.y;
 
                 let midx = (sx_ + tx_) / 2;
                 let midy = (sy_ + ty_) / 2;
@@ -274,14 +327,14 @@ Promise.all([promise]).then(promises => {
 
                 return path;
             });
-        
+
         node.attr("cx", d => d.x)
             .attr("cy", d => d.y)
             .attr("stroke", d => d.color);
-        
-        port.attr("cx", d => 15*Math.cos(toRadians(d.ports[0])) + d.x)
-            .attr("cy", d => 15*Math.sin(toRadians(d.ports[0])) + d.y);
-        
+
+        port.attr("cx", d => 15 * Math.cos(toRadians(d.ports[0])) + d.x)
+            .attr("cy", d => 15 * Math.sin(toRadians(d.ports[0])) + d.y);
+
         label.attr("x", d => d.x)
             .attr("y", d => d.y)
             .text(d => d.label)
@@ -293,7 +346,7 @@ Promise.all([promise]).then(promises => {
         let previous = node.filter((d, i) => d.id === selection).node();
         let previous_wire = data.links.filter(
             d => (d.source.id == selection && d.p.s == 0)
-            || (d.target.id == selection && d.p.t == 0))[0];
+                || (d.target.id == selection && d.p.t == 0))[0];
         if (previous !== null) {
             previous.__data__.color = previous_color;
             previous_wire.width = "2";
@@ -312,7 +365,7 @@ Promise.all([promise]).then(promises => {
         d.color = "red";
         let wire = data.links.filter(
             d => (d.source.id == selection && d.p.s == 0)
-            || (d.target.id == selection && d.p.t == 0))[0];
+                || (d.target.id == selection && d.p.t == 0))[0];
         wire.width = "2";
         wire.color = "black";
     }
@@ -324,6 +377,7 @@ Promise.all([promise]).then(promises => {
         continue_reduce = true;
         update(1.0);
         Storage.set("net", data);
+        history.add(data);
     }
 
     function reduce() {
@@ -354,44 +408,88 @@ Promise.all([promise]).then(promises => {
         update(0.6);
         Storage.set("net", data);
         selection = undefined;
+        history.tail = history.cur;
+        history.add(data);
+        history.cur = history.tail;
         reduce_button.setAttribute("disabled", "");
     }
     function reduce_auto() {
-        
+
         for (let i = 0; i < data.nodes.length; ++i) {
+            reduce_auto_button.setAttribute("disabled", "");
             if (continue_reduce == false) {
+                reduce_auto_button.removeAttribute("disabled");
+                continue_reduce = true;
                 update(1.0);
                 Storage.set("net", data);
                 break;
             }
-            else{
-                    let d = data.nodes[i];
+            else {
+                let d = data.nodes[i];
 
-                    clicked(d);
-                    update(1.0);
-                    Storage.set("net", data);
-                    if (!reduce_button.hasAttribute("disabled")) {
-                        reduce_button.click();
-                        setTimeout(function () {
-                            reduce_auto_button.click();
-                        }, time_delay);  
-                        break;
-                    }
+                clicked(d);
+                update(1.0);
+                Storage.set("net", data);
+                if (!reduce_button.hasAttribute("disabled")) {
 
+                    reduce_button.click();
+                    setTimeout(function () {
+                        reduce_auto_button.click();
+                    }, time_delay);
+                    break;
                 }
+
+            }
         }
-        reduce_auto_button.setAttribute("disabled", "");
     }
     function cancel() {
         continue_reduce = false;
     }
 
     function timer_set() {
-        //var type_input = typeof time_input.value;
-        //console.log(type_input);
         if (!isNaN(time_input.value)) {
             time_delay = time_input.value * 1000;
         }
+    }
+
+    function back() {
+        continue_reduce = false;
+        reduce_auto_button.removeAttribute("disabled");
+        if (history.cur.prev != null) {
+            history.cur = history.cur.prev;
+        }
+        data = history.cur.value;
+        for (let i = 0; i < data.nodes.length; ++i) {
+            data.nodes[i].color = "black";
+        }
+        for (let i = 0; i < data.links.length; ++i) {
+            data.links[i].color = "#ddd";
+        }
+        selection = undefined;
+        update(0.6);
+        Storage.set("net", data);
+        olette.rebuild_net(JSON.stringify(data));
+
+
+
+    }
+
+    function forward() {
+        if (history.cur.next != null) {
+            history.cur = history.cur.next;
+        }
+        data = history.cur.value;
+        for (let i = 0; i < data.nodes.length; ++i) {
+            data.nodes[i].color = "black";
+        }
+        for (let i = 0; i < data.links.length; ++i) {
+            data.links[i].color = "#ddd";
+        }
+        selection = undefined;
+        update(0.6);
+        Storage.set("net", data);
+
+        olette.rebuild(JSON.stringify(data));
     }
 
     var agents_visited = -1;
@@ -450,27 +548,27 @@ Promise.all([promise]).then(promises => {
 });
 
 var Storage = {
-    set: function(key, value) {
+    set: function (key, value) {
         sessionStorage[key] = JSON.stringify(value);
     },
-    get: function(key) {
+    get: function (key) {
         return sessionStorage[key] ? JSON.parse(sessionStorage[key]) : null;
     },
-    poll: function(key, timer) {
+    poll: function (key, timer) {
         if (!sessionStorage[key]) return (timer = setTimeout(Storage.poll.bind(null, key), 100));
         clearTimeout(timer);
         return JSON.parse(sessionStorage[key]);
     },
-    clear: function(key) {
+    clear: function (key) {
         sessionStorage[key] = null;
     }
 };
 
-function toDegrees (angle) {
+function toDegrees(angle) {
     return angle * (180 / Math.PI);
 }
 
-function toRadians (angle) {
+function toRadians(angle) {
     return angle * (Math.PI / 180);
 }
 
