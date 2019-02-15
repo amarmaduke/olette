@@ -375,9 +375,9 @@ Promise.all([promise]).then(promises => {
         data = JSON.parse(olette.load_net(input.value));
         reduce_auto_button.removeAttribute("disabled");
         continue_reduce = true;
+        history.add(JSON.stringify(data));
         update(1.0);
         Storage.set("net", data);
-        history.add(data);
     }
 
     function reduce() {
@@ -404,15 +404,15 @@ Promise.all([promise]).then(promises => {
                 d.fy = d.y;
             }
         }
-
+        history.tail = history.cur;
+        history.add(JSON.stringify(data));
+        history.cur = history.tail;
         update(0.6);
         Storage.set("net", data);
         selection = undefined;
-        history.tail = history.cur;
-        history.add(data);
-        history.cur = history.tail;
         reduce_button.setAttribute("disabled", "");
     }
+
     function reduce_auto() {
 
         for (let i = 0; i < data.nodes.length; ++i) {
@@ -458,18 +458,27 @@ Promise.all([promise]).then(promises => {
         if (history.cur.prev != null) {
             history.cur = history.cur.prev;
         }
-        data = history.cur.value;
+        let previous_data = history.cur.value;
+        olette.rebuild_net(previous_data);
+        data = JSON.parse(previous_data);
+        selection = undefined;
         for (let i = 0; i < data.nodes.length; ++i) {
             data.nodes[i].color = "black";
         }
         for (let i = 0; i < data.links.length; ++i) {
             data.links[i].color = "#ddd";
-        }
-        selection = undefined;
-        update(0.6);
-        Storage.set("net", data);
-        olette.rebuild_net(JSON.stringify(data));
 
+        }
+
+        for (let i = 0; i < data.nodes.length; ++i) {
+            let d = data.nodes[i];
+            if (d.fixed) {
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+        }
+        update(1);
+        continue_reduce = true;
 
 
     }
@@ -478,18 +487,27 @@ Promise.all([promise]).then(promises => {
         if (history.cur.next != null) {
             history.cur = history.cur.next;
         }
-        data = history.cur.value;
+        let previous_data = history.cur.value;
+        olette.rebuild_net(previous_data);
+        data = JSON.parse(previous_data);
+        selection = undefined;
         for (let i = 0; i < data.nodes.length; ++i) {
             data.nodes[i].color = "black";
         }
         for (let i = 0; i < data.links.length; ++i) {
             data.links[i].color = "#ddd";
-        }
-        selection = undefined;
-        update(0.6);
-        Storage.set("net", data);
 
-        olette.rebuild(JSON.stringify(data));
+        }
+
+        for (let i = 0; i < data.nodes.length; ++i) {
+            let d = data.nodes[i];
+            if (d.fixed) {
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+        }
+        update(1);
+        continue_reduce = true;
     }
 
     var agents_visited = -1;

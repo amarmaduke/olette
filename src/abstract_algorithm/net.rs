@@ -69,7 +69,8 @@ pub struct Agent {
     x : f32,
     y : f32,
     fixed : bool,
-    wires : [usize; 3]
+    wires : [usize; 3],
+	//p: 
 }
 
 impl Agent {
@@ -214,9 +215,10 @@ pub struct NodeFromJsonData {
     fixed : bool,
     kind : String,
     label : String,
+	p: Vec<usize>,
     ports : Vec<usize>,
     color : String,
-    width : String
+    width : String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -238,6 +240,8 @@ pub struct LinkFromJsonData {
     target : usize,
     ports : LinkFromJsonDataPortAngles,
     p : LinkFromJsonDataPortIndices,
+	sid: usize,
+	tid: usize,
     force : i32
 }
 
@@ -274,32 +278,44 @@ impl Net {
         let mut max_link_id = 0;
         let mut agent_map = HashMap::new();
         let mut link_map = HashMap::new();
-
         for d in data.nodes {
-            let kind = match d.kind.as_str() {
-                "root" => AgentKind::Root,
-                "eraser" => AgentKind::Eraser,
-                "lambda" => AgentKind::Lambda,
-                "application" => AgentKind::Application,
-                "duplicator" => AgentKind::Duplicator,
-                _ => panic!("Invalid agent kind")
-            };
-            let agent = Agent {
-                kind,
-                label: d.label,
-                x: d.x,
-                y: d.y,
-                fixed: d.fixed,
-                wires: [d.ports[0], d.ports[1], d.ports[2]]
-            };
-            max_agent_id = std::cmp::max(max_agent_id, d.id);
-            agent_map.insert(d.id, agent);
+			let kind = match d.kind.as_str() {
+				"root" => AgentKind::Root,
+				"eraser" => AgentKind::Eraser,
+				"lambda" => AgentKind::Lambda,
+				"application" => AgentKind::Application,
+				"duplicator" => AgentKind::Duplicator,
+				_ => AgentKind::Eraser
+			};
+
+			let agent = if kind == AgentKind::Root {
+				Agent {
+					kind,
+					label: d.label,
+					x: d.x,
+					y: d.y,
+					fixed: d.fixed,
+					wires: [d.p[0],0,0],
+				}
+			} else {
+				Agent {
+					kind,
+					label: d.label,
+					x: d.x,
+					y: d.y,
+					fixed: d.fixed,
+					wires: [d.p[0], d.p[1], d.p[2]],
+				}
+			};
+			max_agent_id = std::cmp::max(max_agent_id, d.id);
+			agent_map.insert(d.id, agent);
+
         }
 
         for d in data.links {
             let wire = Wire {
-                source: d.source,
-                target: d.target
+                source: d.sid,
+                target: d.tid
             };
             max_link_id = std::cmp::max(max_link_id, d.id);
             link_map.insert(d.id, wire);
@@ -321,6 +337,7 @@ impl Net {
 
         let mut i = 0;
         for (key, agent) in self.agents.iter() {
+			let p = json!([agent[0],agent[1],agent[2]]);
             let m = agent.metadata();
             let (color, width) = if critical.contains(&key) { 
                     ("black", "3")
@@ -338,7 +355,8 @@ impl Net {
                     else { agent.label.clone() },
                 "ports": m.2,
                 "color": color,
-                "width": width
+                "width": width,
+				"p": p
             }));
             i += 1;
         }
@@ -380,6 +398,8 @@ impl Net {
                 "id": key, // We cheat a little here to make from_json easier
                 "source": idmap.get(&wire.source).unwrap(),
                 "target": idmap.get(&wire.target).unwrap(),
+				"sid": wire.source,
+				"tid": wire.target,
                 "ports": ports,
                 "p": p,
                 "force": force

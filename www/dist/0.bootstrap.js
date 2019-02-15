@@ -27,11 +27,11 @@ eval("\"use strict\";\n// Instantiate WebAssembly module\nvar wasmExports = __we
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: load_net, reduce_net, update_net */
+/*! exports provided: load_net, reduce_net, update_net, rebuild_net */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"load_net\", function() { return load_net; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"reduce_net\", function() { return reduce_net; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"update_net\", function() { return update_net; });\n/* harmony import */ var olette__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! olette */ \"../pkg/olette.js\");\n\r\n\r\nfunction load_net(term) { return olette__WEBPACK_IMPORTED_MODULE_0__[\"load_net\"](term); }\r\nfunction reduce_net(index, kind) { return olette__WEBPACK_IMPORTED_MODULE_0__[\"reduce\"](index, kind); }\r\nfunction update_net(json) { return olette__WEBPACK_IMPORTED_MODULE_0__[\"update\"](json); }\r\n\n\n//# sourceURL=webpack:///./src/index.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"load_net\", function() { return load_net; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"reduce_net\", function() { return reduce_net; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"update_net\", function() { return update_net; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"rebuild_net\", function() { return rebuild_net; });\n/* harmony import */ var olette__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! olette */ \"../pkg/olette.js\");\n\r\n\r\nfunction load_net(term) { return olette__WEBPACK_IMPORTED_MODULE_0__[\"load_net\"](term); }\r\nfunction reduce_net(index, kind) { return olette__WEBPACK_IMPORTED_MODULE_0__[\"reduce\"](index, kind); }\r\nfunction update_net(json) { return olette__WEBPACK_IMPORTED_MODULE_0__[\"update\"](json); }\r\nfunction rebuild_net(json) { return olette__WEBPACK_IMPORTED_MODULE_0__[\"rebuild\"](json);}\r\n\n\n//# sourceURL=webpack:///./src/index.js?");
 
 /***/ })
 
