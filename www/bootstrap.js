@@ -370,6 +370,7 @@ Promise.all([promise]).then(promises => {
         wire.color = "black";
     }
 
+    //There is no x or y coord to set nodes too
     function load() {
         clear();
         data = JSON.parse(olette.load_net(input.value));
