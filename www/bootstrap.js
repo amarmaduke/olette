@@ -369,8 +369,8 @@ Promise.all([promise]).then(promises => {
         wire.width = "2";
         wire.color = "black";
     }
-
-    //There is no x or y coord to set nodes too
+    // back and forward disabled until history established
+    // snapshot before then update and fix the x,y values
     function load() {
         clear();
         data = JSON.parse(olette.load_net(input.value));
@@ -378,6 +378,7 @@ Promise.all([promise]).then(promises => {
         continue_reduce = true;
         history.add(JSON.stringify(data));
         update(1.0);
+        //history.add(JSON.stringify(data));
         Storage.set("net", data);
     }
 
