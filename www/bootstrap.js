@@ -382,6 +382,7 @@ Promise.all([promise]).then(promises => {
         clear();
         data = JSON.parse(olette.load_net(input.value));
         reduce_auto_button.removeAttribute("disabled");
+        back_button.setAttribute("disabled", "");
         continue_reduce = true;
         history.addHead(JSON.stringify(data));
         update(1.0);
