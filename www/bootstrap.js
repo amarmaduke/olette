@@ -58,8 +58,13 @@ class LinkedList {
         }
         this.tail = node;
         this.cur = this.tail;
-
-
+    }
+    addHead(value) {
+        const node = new Node(value, null, null);
+        this.head = node;
+        this.size = 1;
+        this.cur = this.head;
+        this.tail = this.head;
     }
 }
 var history = new LinkedList();
@@ -372,18 +377,28 @@ Promise.all([promise]).then(promises => {
         wire.width = "2";
         wire.color = "black";
     }
-    // back and forward disabled until history established
-    // snapshot before then update and fix the x,y values
 
     function load() {
         clear();
         data = JSON.parse(olette.load_net(input.value));
         reduce_auto_button.removeAttribute("disabled");
         continue_reduce = true;
-        history.add(JSON.stringify(data));
+        history.addHead(JSON.stringify(data));
         update(1.0);
-        //history.add(JSON.stringify(data));
         Storage.set("net", data);
+      /*let update_History = JSON.parse(history.head.value);
+        for (let i = 0; i < update_History.nodes.length; i++) {
+            let d = update_History.nodes[i];
+            for (let r = 0; r < data.nodes.length; r++) {
+                if (r.id == d.id) {
+                    d.x = r.x
+                    d.y = r.y
+                }
+            }
+        }
+        history.addHead(JSON.stringify(update_History));
+        console.log(JSON.stringify(update_History));
+        */
     }
 
     function reduce() {
