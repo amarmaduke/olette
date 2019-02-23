@@ -29,6 +29,7 @@ const graph_button = document.getElementById("graph_button");
 
 var continue_reduce = false;
 var time_delay = 1500;
+
 class Node {
     constructor(value, next, prev) {
         this.value = value;
@@ -148,8 +149,10 @@ Promise.all([promise]).then(promises => {
     cancel_button.addEventListener("click", button_interact(cancel_button, cancel), true);
 
     back_button.addEventListener("click", button_interact(back_button, back), true);
+    back_button.setAttribute("disabled", "");
 
     forward_button.addEventListener("click", button_interact(forward_button, forward), true);
+    forward_button.setAttribute("disabled", "");
 
     timer_set_button.addEventListener("click", button_interact(timer_set_button, timer_set), true);
 
@@ -371,6 +374,7 @@ Promise.all([promise]).then(promises => {
     }
     // back and forward disabled until history established
     // snapshot before then update and fix the x,y values
+
     function load() {
         clear();
         data = JSON.parse(olette.load_net(input.value));
@@ -413,6 +417,7 @@ Promise.all([promise]).then(promises => {
         Storage.set("net", data);
         selection = undefined;
         reduce_button.setAttribute("disabled", "");
+        back_button.removeAttribute("disabled");
     }
 
     function reduce_auto() {
@@ -481,7 +486,10 @@ Promise.all([promise]).then(promises => {
         }
         update(1);
         continue_reduce = true;
-
+        if (history.cur.prev == null) {
+            back_button.setAttribute("disabled", "");
+        }
+        forward_button.removeAttribute("disabled");
 
     }
 
@@ -510,6 +518,10 @@ Promise.all([promise]).then(promises => {
         }
         update(1);
         continue_reduce = true;
+        if (history.cur.next == null) {
+            forward_button.setAttribute("disabled", "");
+        }
+        back_button.removeAttribute("disabled");
     }
 
     var agents_visited = -1;
