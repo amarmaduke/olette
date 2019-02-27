@@ -279,7 +279,8 @@ impl Net {
         let mut agent_map = HashMap::new();
         let mut link_map = HashMap::new();
         for d in data.nodes {
-		    let kind = match d.kind.as_str() {
+		//check tab/whitespace fix
+			let kind = match d.kind.as_str() {
 			    "root" => AgentKind::Root,
 			    "eraser" => AgentKind::Eraser,
 			    "lambda" => AgentKind::Lambda,
@@ -287,7 +288,6 @@ impl Net {
 			    "duplicator" => AgentKind::Duplicator,
 			    _ => AgentKind::Eraser
 		    };
-			//check tab/whitespace fix
 
 			let agent = if kind == AgentKind::Root {
 				Agent {
@@ -310,7 +310,6 @@ impl Net {
 			};
 			max_agent_id = std::cmp::max(max_agent_id, d.id);
 			agent_map.insert(d.id, agent);
-
         }
 
         for d in data.links {
