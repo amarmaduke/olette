@@ -403,65 +403,68 @@ Promise.all([promise]).then(promises => {
     }
 
     function reduce() {
-        let darray = { "nodes": [] };
-        for (let i = 0; i < data.nodes.length; ++i) {
-            let d = data.nodes[i];
-            let k = {
-                "id": d.id,
-                "x": d.x,
-                "y": d.y,
-                "fixed": d.fixed,
-                "label": d.label
-            };
-            darray.nodes.push(k);
-        }
-        olette.update_net(JSON.stringify(darray));
-        var patch = JSON.parse(olette.reduce_net(selection, rule_kind));
-        simulation.stop();
-        data = patch;
-        for (let i = 0; i < data.nodes.length; ++i) {
-            let d = data.nodes[i];
-            if (d.fixed) {
-                d.fx = d.x;
-                d.fy = d.y;
+        if (!reduce_button.hasAttribute("disabled")) {
+            let darray = { "nodes": [] };
+            for (let i = 0; i < data.nodes.length; ++i) {
+                let d = data.nodes[i];
+                let k = {
+                    "id": d.id,
+                    "x": d.x,
+                    "y": d.y,
+                    "fixed": d.fixed,
+                    "label": d.label
+                };
+                darray.nodes.push(k);
             }
+            olette.update_net(JSON.stringify(darray));
+            var patch = JSON.parse(olette.reduce_net(selection, rule_kind));
+            simulation.stop();
+            data = patch;
+            for (let i = 0; i < data.nodes.length; ++i) {
+                let d = data.nodes[i];
+                if (d.fixed) {
+                    d.fx = d.x;
+                    d.fy = d.y;
+                }
+            }
+            history.tail = history.cur;
+            history.add(JSON.stringify(data));
+            history.cur = history.tail;
+            update(0.6);
+            Storage.set("net", data);
+            selection = undefined;
+            reduce_button.setAttribute("disabled", "");
+            back_button.removeAttribute("disabled");
         }
-        history.tail = history.cur;
-        history.add(JSON.stringify(data));
-        history.cur = history.tail;
-        update(0.6);
-        Storage.set("net", data);
-        selection = undefined;
-        reduce_button.setAttribute("disabled", "");
-        back_button.removeAttribute("disabled");
     }
 
     function reduce_auto() {
-
-        for (let i = 0; i < data.nodes.length; ++i) {
-            reduce_auto_button.setAttribute("disabled", "");
-            if (continue_reduce == false) {
-                reduce_auto_button.removeAttribute("disabled");
-                continue_reduce = true;
-                update(1.0);
-                Storage.set("net", data);
-                break;
-            }
-            else {
-                let d = data.nodes[i];
-
-                clicked(d);
-                update(1.0);
-                Storage.set("net", data);
-                if (!reduce_button.hasAttribute("disabled")) {
-
-                    reduce_button.click();
-                    setTimeout(function () {
-                        reduce_auto_button.click();
-                    }, time_delay);
+        if (!reduce_auto_button.hasAttribute("disabled")) {
+            for (let i = 0; i < data.nodes.length; ++i) {
+                reduce_auto_button.setAttribute("disabled", "");
+                if (continue_reduce == false) {
+                    reduce_auto_button.removeAttribute("disabled");
+                    continue_reduce = true;
+                    update(1.0);
+                    Storage.set("net", data);
                     break;
                 }
+                else {
+                    let d = data.nodes[i];
 
+                    clicked(d);
+                    update(1.0);
+                    Storage.set("net", data);
+                    if (!reduce_button.hasAttribute("disabled")) {
+
+                        reduce_button.click();
+                        setTimeout(function () {
+                            reduce_auto_button.click();
+                        }, time_delay);
+                        break;
+                    }
+
+                }
             }
         }
     }
@@ -476,68 +479,72 @@ Promise.all([promise]).then(promises => {
     }
 
     function back() {
-        continue_reduce = false;
-        reduce_auto_button.removeAttribute("disabled");
-        if (history.cur.prev != null) {
-            history.cur = history.cur.prev;
-        }
-        let previous_data = history.cur.value;
-        olette.rebuild_net(previous_data);
-        data = JSON.parse(previous_data);
-        selection = undefined;
-        for (let i = 0; i < data.nodes.length; ++i) {
-            data.nodes[i].color = "black";
-        }
-        for (let i = 0; i < data.links.length; ++i) {
-            data.links[i].color = "#ddd";
-
-        }
-
-        for (let i = 0; i < data.nodes.length; ++i) {
-            let d = data.nodes[i];
-            if (d.fixed) {
-                d.fx = d.x;
-                d.fy = d.y;
+        if (!back_button.hasAttribute("disabled")) {
+            continue_reduce = false;
+            reduce_auto_button.removeAttribute("disabled");
+            if (history.cur.prev != null) {
+                history.cur = history.cur.prev;
             }
+            let previous_data = history.cur.value;
+            olette.rebuild_net(previous_data);
+            data = JSON.parse(previous_data);
+            selection = undefined;
+            for (let i = 0; i < data.nodes.length; ++i) {
+                data.nodes[i].color = "black";
+            }
+            for (let i = 0; i < data.links.length; ++i) {
+                data.links[i].color = "#ddd";
+
+            }
+
+            for (let i = 0; i < data.nodes.length; ++i) {
+                let d = data.nodes[i];
+                if (d.fixed) {
+                    d.fx = d.x;
+                    d.fy = d.y;
+                }
+            }
+            update(1);
+            continue_reduce = true;
+            if (history.cur.prev == null) {
+                back_button.setAttribute("disabled", "");
+            }
+            forward_button.removeAttribute("disabled");
         }
-        update(1);
-        continue_reduce = true;
-        if (history.cur.prev == null) {
-            back_button.setAttribute("disabled", "");
-        }
-        forward_button.removeAttribute("disabled");
 
     }
 
     function forward() {
-        if (history.cur.next != null) {
-            history.cur = history.cur.next;
-        }
-        let previous_data = history.cur.value;
-        olette.rebuild_net(previous_data);
-        data = JSON.parse(previous_data);
-        selection = undefined;
-        for (let i = 0; i < data.nodes.length; ++i) {
-            data.nodes[i].color = "black";
-        }
-        for (let i = 0; i < data.links.length; ++i) {
-            data.links[i].color = "#ddd";
-
-        }
-
-        for (let i = 0; i < data.nodes.length; ++i) {
-            let d = data.nodes[i];
-            if (d.fixed) {
-                d.fx = d.x;
-                d.fy = d.y;
+        if (!forward_button.hasAttribute("disabled")) {
+            if (history.cur.next != null) {
+                history.cur = history.cur.next;
             }
+            let previous_data = history.cur.value;
+            olette.rebuild_net(previous_data);
+            data = JSON.parse(previous_data);
+            selection = undefined;
+            for (let i = 0; i < data.nodes.length; ++i) {
+                data.nodes[i].color = "black";
+            }
+            for (let i = 0; i < data.links.length; ++i) {
+                data.links[i].color = "#ddd";
+
+            }
+
+            for (let i = 0; i < data.nodes.length; ++i) {
+                let d = data.nodes[i];
+                if (d.fixed) {
+                    d.fx = d.x;
+                    d.fy = d.y;
+                }
+            }
+            update(1);
+            continue_reduce = true;
+            if (history.cur.next == null) {
+                forward_button.setAttribute("disabled", "");
+            }
+            back_button.removeAttribute("disabled");
         }
-        update(1);
-        continue_reduce = true;
-        if (history.cur.next == null) {
-            forward_button.setAttribute("disabled", "");
-        }
-        back_button.removeAttribute("disabled");
     }
 
     var agents_visited = -1;
