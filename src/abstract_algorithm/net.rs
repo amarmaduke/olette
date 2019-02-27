@@ -279,7 +279,6 @@ impl Net {
         let mut agent_map = HashMap::new();
         let mut link_map = HashMap::new();
         for d in data.nodes {
-		//check tab/whitespace fix
 			let kind = match d.kind.as_str() {
 			    "root" => AgentKind::Root,
 			    "eraser" => AgentKind::Eraser,
