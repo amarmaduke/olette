@@ -17,12 +17,12 @@
     "check-dependencies": "^1.1.0",
     "copy-webpack-plugin": "^4.6.0",
     "hello-wasm-pack": "^0.1.0",
-    "webpack": "^4.27.1",
-    "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "^3.1.10"
+    "webpack": "^4.29.3",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.1.14"
   },
   "dependencies": {
     "bulma": "^0.7.1",
-    "d3": "^5.7.0"
+    "d3": "^5.9.0"
   }
 }
