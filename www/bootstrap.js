@@ -24,6 +24,10 @@ const slider = document.getElementById("slider");
 const slider_button = document.getElementById("slider_button");
 const time_input = document.getElementById("time_input");
 const timer_set_button = document.getElementById("timer_set_button");
+const titleVar = document.getElementById("titleVar");
+const title_button = document.getElementById("title_button");
+const title_input = document.getElementById("title_input");
+const title_set_button = document.getElementById("title_set_button");
 const graph = document.getElementById("graph");
 const graph_button = document.getElementById("graph_button");
 
@@ -140,6 +144,11 @@ Promise.all([promise]).then(promises => {
         slider.classList.toggle("is-active");
     });
 
+    title_button.addEventListener("click", event => {
+        event.stopPropagation();
+        titleVar.classList.toggle("is-active");
+    });
+
     graph_button.addEventListener("click", event => {
         event.stopPropagation();
         graph.classList.toggle("is-active");
@@ -160,6 +169,8 @@ Promise.all([promise]).then(promises => {
     forward_button.setAttribute("disabled", "");
 
     timer_set_button.addEventListener("click", button_interact(timer_set_button, timer_set), true);
+
+    title_set_button.addEventListener("click", button_interact(title_set_button, title_set), true);
 
 
     function button_interact(button, callback) {
@@ -369,7 +380,7 @@ Promise.all([promise]).then(promises => {
             .style("font-size", "20px")
             .style("fill", "#4393c3");
 
-        title.attr("x", d => d.x)
+        title.attr("x", d => d.x )
             .attr("y", d => d.y)
             .text(d => d.title)
             .style("font-size", "20px")
@@ -438,14 +449,17 @@ Promise.all([promise]).then(promises => {
                     "x": d.x,
                     "y": d.y,
                     "fixed": d.fixed,
-                    "label": d.label
+                    "label": d.label,
+                    "title": d.title
                 };
+                console.log(k.title);
                 darray.nodes.push(k);
             }
             olette.update_net(JSON.stringify(darray));
             var patch = JSON.parse(olette.reduce_net(selection, rule_kind));
             simulation.stop();
             data = patch;
+            console.log(data);
             for (let i = 0; i < data.nodes.length; ++i) {
                 let d = data.nodes[i];
                 if (d.fixed) {
@@ -501,6 +515,17 @@ Promise.all([promise]).then(promises => {
     function timer_set() {
         if (!isNaN(time_input.value)) {
             time_delay = time_input.value * 1000;
+        }
+    }
+
+    function title_set() {
+        if (typeof title_input.value === 'string' || title_input.value instanceof String) {
+            title_set = title_input.value;
+        }
+        let cur = node.filter((d, i) => d.id === selection).node();
+        if (cur != null) {
+            cur.__data__.title = title_input.value;
+            update(1.0);
         }
     }
 

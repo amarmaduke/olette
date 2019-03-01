@@ -66,12 +66,11 @@ impl Wire {
 pub struct Agent {
     kind : AgentKind,
     label : String,
-	title: String,
+	title : String,
     x : f32,
     y : f32,
     fixed : bool,
-    wires : [usize; 3],
-	//p: 
+    wires : [usize; 3]
 }
 
 impl Agent {
@@ -359,7 +358,7 @@ impl Net {
                 "kind": m.0,
                 "label": if agent.label.is_empty() { m.1 }
                     else { agent.label.clone() },
-				"title": "",
+				"title": "test",
                 "ports": m.2,
                 "color": color,
                 "width": width,
