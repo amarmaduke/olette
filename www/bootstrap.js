@@ -75,7 +75,7 @@ Promise.all([promise]).then(promises => {
     var rule_kind = "auto";
     var current_active = auto_choice;
     var simulation, simulation_flag = true;
-    var node, link, port, label;
+    var node, link, port, label, title;
     var data;
 
 
@@ -212,6 +212,7 @@ Promise.all([promise]).then(promises => {
         svg.append("g").attr("class", "node");
         svg.append("g").attr("class", "port");
         svg.append("g").attr("class", "label");
+        svg.append("g").attr("class", "title");
     }
 
     function update(alpha) {
@@ -245,6 +246,7 @@ Promise.all([promise]).then(promises => {
             .attr("fx", d => d.fx)
             .attr("fy", d => d.fy)
             .attr("id", d => d.id)
+            .attr("title", d => d.title)
             .on("click", clicked)
             .merge(node);
         //.append("title", d => d.id)
@@ -275,6 +277,24 @@ Promise.all([promise]).then(promises => {
             .on("click", clicked)
             .merge(label);
         label.call(drag);
+
+        title = svg.select(".title").selectAll("text")
+            .data(data.nodes, d => d.id);
+        title.exit().transition(t)
+            .style("opacity", 1e-6)
+            .remove();
+        title = title.enter().append("text")
+            .attr('text-anchor', 'start')
+            .attr('dominant-baseline', 'text-after-edge')
+            .style('font-family', 'Helvetica')
+            .style('font-size', '4px')
+            .style("cursor", "pointer")
+            .text(d => d.title)
+            .on("click", clicked)
+            .merge(title);
+        title.call(drag);
+            
+
 
         simulation.nodes(data.nodes).on("tick", tick);
         simulation.force("link").links(data.links)
@@ -346,6 +366,12 @@ Promise.all([promise]).then(promises => {
         label.attr("x", d => d.x)
             .attr("y", d => d.y)
             .text(d => d.label)
+            .style("font-size", "20px")
+            .style("fill", "#4393c3");
+
+        title.attr("x", d => d.x)
+            .attr("y", d => d.y)
+            .text(d => d.title)
             .style("font-size", "20px")
             .style("fill", "#4393c3");
     }

@@ -66,6 +66,7 @@ impl Wire {
 pub struct Agent {
     kind : AgentKind,
     label : String,
+	title: String,
     x : f32,
     y : f32,
     fixed : bool,
@@ -79,6 +80,7 @@ impl Agent {
         let mut result = Agent {
             kind,
             label: String::new(),
+			title: String::new(),
             x: 0.,
             y: 0.,
             fixed: false,
@@ -198,7 +200,8 @@ pub struct NodeData {
     x : f32,
     y : f32,
     fixed: bool,
-    label: String
+    label: String,
+	title: String
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -215,6 +218,7 @@ pub struct NodeFromJsonData {
     fixed : bool,
     kind : String,
     label : String,
+	title : String,
 	p: Vec<usize>,
     ports : Vec<usize>,
     color : String,
@@ -270,6 +274,7 @@ impl Net {
             agent.y = node.y;
             agent.fixed = node.fixed;
             agent.label = node.label;
+			agent.title = node.title;
         }
     }
 
@@ -292,6 +297,7 @@ impl Net {
 				Agent {
 					kind,
 					label: d.label,
+					title: d.title,
 					x: d.x,
 					y: d.y,
 					fixed: d.fixed,
@@ -301,6 +307,7 @@ impl Net {
 				Agent {
 					kind,
 					label: d.label,
+					title: d.title,
 					x: d.x,
 					y: d.y,
 					fixed: d.fixed,
@@ -352,6 +359,7 @@ impl Net {
                 "kind": m.0,
                 "label": if agent.label.is_empty() { m.1 }
                     else { agent.label.clone() },
+				"title": "",
                 "ports": m.2,
                 "color": color,
                 "width": width,
