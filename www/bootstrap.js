@@ -380,7 +380,7 @@ Promise.all([promise]).then(promises => {
             .style("font-size", "20px")
             .style("fill", "#4393c3");
 
-        title.attr("x", d => d.x )
+        title.attr("x", d => d.x +20)
             .attr("y", d => d.y)
             .text(d => d.title)
             .style("font-size", "20px")
