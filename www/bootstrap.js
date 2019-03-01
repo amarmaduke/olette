@@ -424,19 +424,6 @@ Promise.all([promise]).then(promises => {
         history.addHead(JSON.stringify(data));
         update(1.0);
         Storage.set("net", data);
-      /*let update_History = JSON.parse(history.head.value);
-        for (let i = 0; i < update_History.nodes.length; i++) {
-            let d = update_History.nodes[i];
-            for (let r = 0; r < data.nodes.length; r++) {
-                if (r.id == d.id) {
-                    d.x = r.x
-                    d.y = r.y
-                }
-            }
-        }
-        history.addHead(JSON.stringify(update_History));
-        console.log(JSON.stringify(update_History));
-        */
     }
 
     function reduce() {
@@ -526,6 +513,14 @@ Promise.all([promise]).then(promises => {
         if (cur != null) {
             cur.__data__.title = title_input.value;
             update(1.0);
+            let cur_data = JSON.parse(history.cur.value);
+            for (let i = 0; i < cur_data.nodes.length; ++i) {
+                if (cur.__data__.id == cur_data.nodes[i].id) {
+                    cur_data.nodes[i].title = cur.__data__.title;
+                }
+            }
+            let new_cur = JSON.stringify(cur_data);
+            history.cur.value = new_cur;
         }
     }
 

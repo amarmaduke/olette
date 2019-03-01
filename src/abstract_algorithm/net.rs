@@ -358,7 +358,7 @@ impl Net {
                 "kind": m.0,
                 "label": if agent.label.is_empty() { m.1 }
                     else { agent.label.clone() },
-				"title": "test",
+				"title": agent.title,
                 "ports": m.2,
                 "color": color,
                 "width": width,
