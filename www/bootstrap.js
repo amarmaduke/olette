@@ -384,7 +384,7 @@ Promise.all([promise]).then(promises => {
             .attr("y", d => d.y)
             .text(d => d.title)
             .style("font-size", "20px")
-            .style("fill", "#4393c3");
+            .style("fill", "#203644");
     }
 
     function clicked(d) {
@@ -466,7 +466,7 @@ Promise.all([promise]).then(promises => {
     }
 
     function reduce_auto() {
-        if (!reduce_auto_button.hasAttribute("disabled")) {
+        if (history.cur != null) {
             for (let i = 0; i < data.nodes.length; ++i) {
                 reduce_auto_button.setAttribute("disabled", "");
                 if (continue_reduce == false) {
