@@ -34,7 +34,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
 </head>
-<body>
+<body id="window" >
     <div class="container is-fluid" style="padding-bottom:5px; padding-top:10px; background-color: #203644;">
         <center>
             <h>
@@ -120,31 +120,6 @@
                     </div>
                 </p>
                 <p class="control">
-                    <div id="titleVar" class="dropdown">
-                        <div class="dropdown-trigger">
-                            <button id="title_button" class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-                                <span>Title Options</span>
-                                <span class="icon is-small">
-                                    <i class="fas fa-angle-down" aria-hidden="true"></i>
-                                </span>
-                            </button>
-                        </div>
-                        <div class="dropdown-menu" id="slider-menu" role="menu">
-                            <div class="dropdown-content">
-                                <a id="title_feild" class="dropdown-item" style="padding-left:45px;">
-                                    <center>
-                                        Title:<br />
-                                        <input id="title_input" class="input" type="text" placeholder="node title">
-                                        <a id="title_set_button" class="button is-primary" style="background-color: #5B9EA6">
-                                            Set Title
-                                        </a>
-                                    </center>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </p>
-                <p class="control">
                     <div id="graph" class="dropdown">
                         <div class="dropdown-trigger">
                             <button id="graph_button" class="button" aria-haspopup="true" aria-controls="dropdown-menu">
@@ -170,9 +145,24 @@
                         </div>
                     </div>
                 </p>
+
+                <div id="modal" class="modal" style="display:none;width:100%;height:100%;overflow:auto;background-color: rgba(0,0,0,0.4);">
+
+                    <div class="modal-content" style="background-color:#fefefe;margin:15% auto;padding: 20px;border: 1px solid #888; width: 80%">
+                        <span class="close" style="color: #aaa;float: right; font-size: 28px;font-weight: bold">&times;</span>
+                        <center>
+                            Title:<br />
+                            <input id="title_input" class="input" type="text" placeholder="node title">
+                            <a id="title_set_button" class="button is-primary" style="background-color: #5B9EA6">
+                                Set Title
+                            </a>
+                        </center>
+                    </div>
+
+                </div>
             </div>
         </div>
         <div class="net"></div>
-</body>
+</bodyid="window">
 <script defer src="bootstrap.js"></script>
 </html>

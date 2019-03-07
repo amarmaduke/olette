@@ -24,12 +24,14 @@ const slider = document.getElementById("slider");
 const slider_button = document.getElementById("slider_button");
 const time_input = document.getElementById("time_input");
 const timer_set_button = document.getElementById("timer_set_button");
-const titleVar = document.getElementById("titleVar");
-const title_button = document.getElementById("title_button");
 const title_input = document.getElementById("title_input");
 const title_set_button = document.getElementById("title_set_button");
 const graph = document.getElementById("graph");
 const graph_button = document.getElementById("graph_button");
+const window = document.getElementById("window");
+
+var modal = document.getElementById('modal');
+var span = document.getElementsByClassName("close")[0];
 
 var continue_reduce = false;
 var time_delay = 1500;
@@ -144,11 +146,6 @@ Promise.all([promise]).then(promises => {
         slider.classList.toggle("is-active");
     });
 
-    title_button.addEventListener("click", event => {
-        event.stopPropagation();
-        titleVar.classList.toggle("is-active");
-    });
-
     graph_button.addEventListener("click", event => {
         event.stopPropagation();
         graph.classList.toggle("is-active");
@@ -172,6 +169,9 @@ Promise.all([promise]).then(promises => {
 
     title_set_button.addEventListener("click", button_interact(title_set_button, title_set), true);
 
+    span.addEventListener("click", button_interact(span, modal_set), true);
+
+    window.addEventListener("keydown", key_press , false);
 
     function button_interact(button, callback) {
         return (element, event) => {
@@ -593,8 +593,16 @@ Promise.all([promise]).then(promises => {
         }
     }
 
-    var agents_visited = -1;
-    document.onkeydown = function (event) {
+    function modal_set() {
+
+        if (modal.style.display == "none") {
+            modal.style.display = "block";
+        } else {
+            modal.style.display = "none";
+        }
+    }
+
+    function key_press( event ) {
         var key = event.keyCode;
         if (key == 13) {
             load_button.click();
@@ -610,6 +618,8 @@ Promise.all([promise]).then(promises => {
             cancel_choice.click();
             dropdown_button.click();
             reduce_button.click();
+        } else if (key == 84 && selection != undefined) {
+            modal_set();
         } else if (key == 90) {
             let filtered = svg.select(".node").selectAll("circle")
                 .filter((d, i) => d.color === "black" || d.color === "red");
@@ -629,7 +639,8 @@ Promise.all([promise]).then(promises => {
             let d = data.nodes.filter(d => d.id === selection)[0];
             d.label = "" + (key - 48);
         }
-    };
+    }
+
 
     function dragstarted(d) {
         if (!d3.event.active) simulation.alphaTarget(0.3).restart();
