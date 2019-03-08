@@ -28,13 +28,13 @@ const title_input = document.getElementById("title_input");
 const title_set_button = document.getElementById("title_set_button");
 const graph = document.getElementById("graph");
 const graph_button = document.getElementById("graph_button");
-const window = document.getElementById("window");
-
+const key_input = document.getElementById("key_input");
 var modal = document.getElementById('modal');
 var span = document.getElementsByClassName("close")[0];
 
 var continue_reduce = false;
 var time_delay = 1500;
+
 
 class Node {
     constructor(value, next, prev) {
@@ -171,7 +171,7 @@ Promise.all([promise]).then(promises => {
 
     span.addEventListener("click", button_interact(span, modal_set), true);
 
-    window.addEventListener("keydown", key_press , false);
+    key_input.addEventListener("keydown", key_press , false);
 
     function button_interact(button, callback) {
         return (element, event) => {
@@ -602,7 +602,8 @@ Promise.all([promise]).then(promises => {
         }
     }
 
-    function key_press( event ) {
+    function key_press(event) {
+
         var key = event.keyCode;
         if (key == 13) {
             load_button.click();
@@ -620,6 +621,12 @@ Promise.all([promise]).then(promises => {
             reduce_button.click();
         } else if (key == 84 && selection != undefined) {
             modal_set();
+        } else if (key == 82) {
+            reduce_auto_button.click();
+        } else if (key == 66) {
+            back_button.click();
+        } else if (key == 70) {
+            forward_button.click();
         } else if (key == 90) {
             let filtered = svg.select(".node").selectAll("circle")
                 .filter((d, i) => d.color === "black" || d.color === "red");
