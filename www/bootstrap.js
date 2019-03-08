@@ -439,7 +439,7 @@ Promise.all([promise]).then(promises => {
     }
 
     function reduce_auto() {
-        if (!reduce_auto_button.hasAttribute("disabled")) {
+        if (history.cur != null) {
             for (let i = 0; i < data.nodes.length; ++i) {
                 reduce_auto_button.setAttribute("disabled", "");
                 if (continue_reduce == false) {
