@@ -197,9 +197,12 @@ impl Tree {
     fn fix_indices_helper(tree : &mut Tree, map : &mut HashMap<String, Vec<usize>>, depth : usize) {
         match tree {
             Tree::Var(id, ref mut index) => {
-                let stack = map.get(&id.clone()).expect("Free variables are not implemented.");
-                let relative_depth = *stack.last().expect("Impossible.");
-                *index = depth - relative_depth - 1;
+                *index = 100;
+                if let Some(stack) = map.get(&id.clone()) {
+                    if let Some(relative_depth) = stack.last() {
+                        *index = depth - relative_depth - 1;
+                    }
+                }
             },
             Tree::Abs(id, ref mut body) => {
                 {

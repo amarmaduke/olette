@@ -318,23 +318,24 @@ impl Net {
 
     pub fn to_tree(&self) -> Option<Tree> {
         let mut map = HashMap::new();
-        let result = self.to_tree_helper(1, self.agent(1)[0], &mut map);
+        let result = self.to_tree_helper(1, self.agent(1)[0], &mut map, 1000);
         result.map(|x| Tree::fix_indices(x))
     }
 
-    pub fn to_tree_helper(&self, aid : usize, wid : usize, oracle : &mut HashMap<String, usize>) -> Option<Tree> {
+    pub fn to_tree_helper(&self, aid : usize, wid : usize, oracle : &mut HashMap<String, usize>, gas : isize) -> Option<Tree> {
         use AgentKind::*;
+        if gas <= 0 { return None; }
         let agent = self.agent(aid);
         match agent.kind {
             Root => {
                 let next_id = self.partner(aid, agent[0]);
-                self.to_tree_helper(next_id, agent[0], oracle)
+                self.to_tree_helper(next_id, agent[0], oracle, gas - 1)
             },
             Application => {
                 let left_id = self.partner(aid, agent[0]);
                 let right_id = self.partner(aid, agent[2]);
-                let left = self.to_tree_helper(left_id, agent[0], oracle);
-                let right = self.to_tree_helper(right_id, agent[2], oracle);
+                let left = self.to_tree_helper(left_id, agent[0], oracle, gas - 1);
+                let right = self.to_tree_helper(right_id, agent[2], oracle, gas - 1);
                 if let Some(le) = left {
                     if let Some(ri) = right {
                         Some(Tree::App(
@@ -352,7 +353,7 @@ impl Net {
                 let port = self.agent(aid).port_of(wid);
                 if port == 0 {
                     let body_id = self.partner(aid, agent[1]);
-                    let body = self.to_tree_helper(body_id, agent[1], oracle);
+                    let body = self.to_tree_helper(body_id, agent[1], oracle, gas - 1);
                     if let Some(b) = body {
                         Some(Tree::Abs(aid.to_string(), Box::new(b)))
                     } else {
@@ -367,18 +368,18 @@ impl Net {
                 if port == 0 {
                     if let Some(&p) = oracle.get(&agent.label) {
                         let body_id = self.partner(aid, agent[p]);
-                        self.to_tree_helper(body_id, agent[p], oracle)
+                        self.to_tree_helper(body_id, agent[p], oracle, gas - 1)
                     } else {
                         None
                     }
                 } else {
                     let body_id = self.partner(aid, agent[0]);
                     oracle.insert(agent.label.clone(), port);
-                    self.to_tree_helper(body_id, agent[0], oracle)
+                    self.to_tree_helper(body_id, agent[0], oracle, gas - 1)
                 }
             },
             Eraser => {
-                unreachable!("Impossible.");
+                None
             }
         }
     }
