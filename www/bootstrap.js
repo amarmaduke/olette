@@ -172,7 +172,7 @@ Promise.all([promise]).then(promises => {
     span.addEventListener("click", button_interact(span, modal_set), true);
 
     window.addEventListener("keydown", key_press, true);
-    //window.addEventListener("keyup", key_press, false);
+    window.addEventListener("keyup", key_up, true);
 
     function button_interact(button, callback) {
         return (element, event) => {
@@ -523,6 +523,7 @@ Promise.all([promise]).then(promises => {
             let new_cur = JSON.stringify(cur_data);
             history.cur.value = new_cur;
         }
+        modal_set();
     }
 
     function back() {
@@ -602,33 +603,39 @@ Promise.all([promise]).then(promises => {
             modal.style.display = "none";
         }
     }
-
+    var alt = false;
     var agents_visited = -1;
     function key_press(event) {
-        key = event.key;
-        if (key==13) {
-            load_button.click();
-        } else if (key==65 && selection != undefined) {
+        var key = event.keyCode;
+        if (key == 13) { //enter
+            if (modal.style.display == "none") {
+                load_button.click();
+            } else {
+                title_set();
+            }
+        } else if (key == 18) { // alt
+            alt = true;
+        } else if (key == 65 && selection != undefined && alt == true) { //a + alt
             auto_choice.click();
             dropdown_button.click();
             reduce_button.click();
-        } else if (key==68 && selection != undefined) {
+        } else if (key == 68 && selection != undefined && alt == true) {//d + alt
             duplicate_choice.click();
             dropdown_button.click();
             reduce_button.click();
-        } else if (key==67 && selection != undefined) {
+        } else if (key == 67 && selection != undefined && alt == true) {//c + alt
             cancel_choice.click();
             dropdown_button.click();
             reduce_button.click();
-        } else if (key==116 && selection != undefined) {
+        } else if (key == 84 && selection != undefined && alt == true) { //t + alt
             modal_set();
-        } else if (key==82) {
+        } else if (key == 82 && alt == true) { //r + alt
             reduce_auto_button.click();
-        } else if (key==66 ) {
+        } else if (key == 66 && alt == true) { //b + alt
             back_button.click();
-        } else if (key==70 ) {
+        } else if (key == 70 && alt == true) { //f + alt
             forward_button.click();
-        } else if (key==90 ) {
+        } else if (key == 90 && alt == true) { //z + alt
             let filtered = svg.select(".node").selectAll("circle")
                 .filter((d, i) => d.color === "black" || d.color === "red");
 
@@ -643,6 +650,13 @@ Promise.all([promise]).then(promises => {
                     agents_visited += 1;
                 }
             });
+        }
+    }
+
+    function key_up(event) {
+        var key = event.keyCode;
+        if (key == 18) {
+            alt = false;
         }
     }
 
