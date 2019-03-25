@@ -28,7 +28,7 @@ const title_input = document.getElementById("title_input");
 const title_set_button = document.getElementById("title_set_button");
 const graph = document.getElementById("graph");
 const graph_button = document.getElementById("graph_button");
-const key_input = document.getElementById("key_input");
+const window = document.getElementById("window");
 var modal = document.getElementById('modal');
 var span = document.getElementsByClassName("close")[0];
 
@@ -171,7 +171,8 @@ Promise.all([promise]).then(promises => {
 
     span.addEventListener("click", button_interact(span, modal_set), true);
 
-    key_input.addEventListener("keydown", key_press , false);
+    window.addEventListener("keydown", key_press, true);
+    //window.addEventListener("keyup", key_press, false);
 
     function button_interact(button, callback) {
         return (element, event) => {
@@ -602,32 +603,32 @@ Promise.all([promise]).then(promises => {
         }
     }
 
+    var agents_visited = -1;
     function key_press(event) {
-
-        var key = event.keyCode;
-        if (key == 13) {
+        key = event.key;
+        if (key==13) {
             load_button.click();
-        } else if (key == 65 && selection != undefined) {
+        } else if (key==65 && selection != undefined) {
             auto_choice.click();
             dropdown_button.click();
             reduce_button.click();
-        } else if (key == 68 && selection != undefined) {
+        } else if (key==68 && selection != undefined) {
             duplicate_choice.click();
             dropdown_button.click();
             reduce_button.click();
-        } else if (key == 67 && selection != undefined) {
+        } else if (key==67 && selection != undefined) {
             cancel_choice.click();
             dropdown_button.click();
             reduce_button.click();
-        } else if (key == 84 && selection != undefined) {
+        } else if (key==116 && selection != undefined) {
             modal_set();
-        } else if (key == 82) {
+        } else if (key==82) {
             reduce_auto_button.click();
-        } else if (key == 66) {
+        } else if (key==66 ) {
             back_button.click();
-        } else if (key == 70) {
+        } else if (key==70 ) {
             forward_button.click();
-        } else if (key == 90) {
+        } else if (key==90 ) {
             let filtered = svg.select(".node").selectAll("circle")
                 .filter((d, i) => d.color === "black" || d.color === "red");
 
@@ -642,9 +643,6 @@ Promise.all([promise]).then(promises => {
                     agents_visited += 1;
                 }
             });
-        } else if (key >= 48 && key <= 57 && selection != undefined) {
-            let d = data.nodes.filter(d => d.id === selection)[0];
-            d.label = "" + (key - 48);
         }
     }
 
