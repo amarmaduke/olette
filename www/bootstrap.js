@@ -631,9 +631,9 @@ Promise.all([promise]).then(promises => {
             modal_set();
         } else if (key == 82 && alt == true) { //r + alt
             reduce_auto_button.click();
-        } else if (key == 66 && alt == true) { //b + alt
+        } else if (key == 37 ) { //left arrow
             back_button.click();
-        } else if (key == 70 && alt == true) { //f + alt
+        } else if (key == 39) { //right arrow
             forward_button.click();
         } else if (key == 90 && alt == true) { //z + alt
             let filtered = svg.select(".node").selectAll("circle")
