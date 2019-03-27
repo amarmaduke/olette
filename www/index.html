@@ -35,7 +35,7 @@
             position: fixed;
             z-index: top: 0;
             left: 0;
-            background-color: #111;
+            background-color: #121F26;
             overflow-x: hidden;
             padding-top: 60px;
             transition: 0.5s;
@@ -51,7 +51,7 @@
         }
 
         .sidenav a:hover, .offcanvas a:focus {
-            color: #f1f1f1;
+            color: #121F26;
         }
 
         .sidenav .closebtn {
@@ -74,7 +74,7 @@
         }
 
         .topnav {
-            background-color: #333;
+            background-color: #121F26;
             overflow: hidden;
         }
 
@@ -146,14 +146,14 @@
 </head>
 <body id="window">
     <div class="sidenav" id="sideNavigation">
-        <a class="closebtn" onclick="closeNav()">&times;</a>
+        <a id="close_button" class="closebtn" onclick="closeNav()">&times;</a>
         <a><input id="lambda_input" class="input" type="text" placeholder="λx y. x or \x y. y"></a>
-        <a id="load_button" class="button is-primary" style="background-color:#5B9EA6"> Load </a>
-        <a id="reduce_button" class="button is-danger" disabled style="background-color:#752424"> Reduce </a>
-        <a id="reduce_auto_button" class="button is-danger" disabled style="background-color:#752424"> Auto Reduce  </a>
-        <a id="cancel_button" class="button is-primary" style="background-color: #5B9EA6"> Cancel </a> <!-- green #73cc99 gray C0C0C0 light gray F5F5F5 beige D0C8B3 -->
-        <a id="back_button" class="button is-primary" style="background-color: #5B9EA6">  << </a>
-        <a id="forward_button" class="button is-primary" style="background-color: #5B9EA6"> >> </a>
+        <a id="load_button" class="button is-primary" style="background-color:#4189A6"> Load </a>
+        <a id="reduce_button" class="button is-danger" disabled style="background-color:#354648"> Reduce </a>
+        <a id="reduce_auto_button" class="button is-danger" disabled style="background-color:#354648"> Auto Reduce  </a>
+        <a id="cancel_button" class="button is-primary" style="background-color: #4189A6"> Cancel </a> <!-- green #73cc99 gray C0C0C0 light gray F5F5F5 beige D0C8B3 -->
+        <a id="back_button" class="button is-primary" style="background-color: #4189A6">  << </a>
+        <a id="forward_button" class="button is-primary" style="background-color: #4189A6"> >> </a>
         <p class="control">
             <div id="dropdown" class="dropdown">
                 <div class="dropdown-trigger">

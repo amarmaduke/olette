@@ -29,6 +29,7 @@ const title_set_button = document.getElementById("title_set_button");
 const graph = document.getElementById("graph");
 const graph_button = document.getElementById("graph_button");
 const window = document.getElementById("window");
+const close_button = document.getElementById("close_button");
 var modal = document.getElementById('modal');
 var span = document.getElementsByClassName("close")[0];
 
@@ -173,6 +174,7 @@ Promise.all([promise]).then(promises => {
 
     window.addEventListener("keydown", key_press, true);
     window.addEventListener("keyup", key_up, true);
+
 
     function button_interact(button, callback) {
         return (element, event) => {
@@ -615,6 +617,12 @@ Promise.all([promise]).then(promises => {
             }
         } else if (key == 18) { // alt
             alt = true;
+        } else if (key == 9) { //tab
+            if (document.getElementById("sideNavigation").style.width == "250px") {
+                closeNav();
+            } else {
+                openNav();
+            }
         } else if (key == 65 && selection != undefined && alt == true) { //a + alt
             auto_choice.click();
             dropdown_button.click();
