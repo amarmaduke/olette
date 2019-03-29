@@ -20,14 +20,10 @@ const dropdown_button = document.getElementById("dropdown_button");
 const auto_choice = document.getElementById("auto");
 const duplicate_choice = document.getElementById("duplicate");
 const cancel_choice = document.getElementById("cancel");
-const slider = document.getElementById("slider");
-const slider_button = document.getElementById("slider_button");
 const time_input = document.getElementById("time_input");
 const timer_set_button = document.getElementById("timer_set_button");
 const title_input = document.getElementById("title_input");
 const title_set_button = document.getElementById("title_set_button");
-const graph = document.getElementById("graph");
-const graph_button = document.getElementById("graph_button");
 const window = document.getElementById("window");
 const close_button = document.getElementById("close_button");
 var modal = document.getElementById('modal');
@@ -80,17 +76,12 @@ Promise.all([promise]).then(promises => {
     var olette = promises[0];
 
     var rule_kind = "auto";
-    var current_active = auto_choice;
     var simulation, simulation_flag = true;
     var node, link, port, label, title;
     var data;
 
 
 
-    dropdown_button.addEventListener("click", event => {
-        event.stopPropagation();
-        dropdown.classList.toggle("is-active");
-    });
 
     force_on_button.addEventListener("click", event => {
         simulation_flag = true;
@@ -117,40 +108,19 @@ Promise.all([promise]).then(promises => {
 
     auto_choice.addEventListener("click", event => {
         event.stopPropagation();
-        current_active.classList.toggle("is-active");
-        auto_choice.classList.toggle("is-active");
-        current_active = auto_choice;
         rule_kind = "auto";
-        dropdown.classList.toggle("is-active");
     });
 
     duplicate_choice.addEventListener("click", event => {
         event.stopPropagation();
-        current_active.classList.toggle("is-active");
-        duplicate_choice.classList.toggle("is-active");
-        current_active = duplicate_choice;
         rule_kind = "duplicate";
-        dropdown.classList.toggle("is-active");
     });
 
     cancel_choice.addEventListener("click", event => {
         event.stopPropagation();
-        current_active.classList.toggle("is-active");
-        cancel_choice.classList.toggle("is-active");
-        current_active = cancel_choice;
         rule_kind = "cancel";
-        dropdown.classList.toggle("is-active");
     });
 
-    slider_button.addEventListener("click", event => {
-        event.stopPropagation();
-        slider.classList.toggle("is-active");
-    });
-
-    graph_button.addEventListener("click", event => {
-        event.stopPropagation();
-        graph.classList.toggle("is-active");
-    });
 
     button.addEventListener('click', button_interact(button, load), true);
 
@@ -242,7 +212,7 @@ Promise.all([promise]).then(promises => {
         // link.stuff() If we want to update links
         link = link.enter().append("path")
             .attr("fill", "transparent")
-            .attr("stroke", d => "#ddd")
+            .attr("stroke", d => "#708090")
             .merge(link);
 
         node = svg.select(".node").selectAll("circle")
@@ -326,7 +296,7 @@ Promise.all([promise]).then(promises => {
                     d.target.y += d.force * k;
                 }
             })
-            .attr("stroke", d => d.color ? d.color : "#ddd")
+            .attr("stroke", d => d.color ? d.color : "#708090")
             .attr("stroke-width", d => d.width ? d.width : "2")
             .attr("d", d => {
                 let tx_normal = Math.cos(toRadians(d.ports.t));
@@ -398,7 +368,7 @@ Promise.all([promise]).then(promises => {
         if (previous !== null) {
             previous.__data__.color = previous_color;
             previous_wire.width = "2";
-            previous_wire.color = "#ddd";
+            previous_wire.color = "#708090";
         }
         if (d.color === "black") {
             reduce_button.removeAttribute("disabled");
@@ -442,14 +412,12 @@ Promise.all([promise]).then(promises => {
                     "label": d.label,
                     "title": d.title
                 };
-                console.log(k.title);
                 darray.nodes.push(k);
             }
             olette.update_net(JSON.stringify(darray));
             var patch = JSON.parse(olette.reduce_net(selection, rule_kind));
             simulation.stop();
             data = patch;
-            console.log(data);
             for (let i = 0; i < data.nodes.length; ++i) {
                 let d = data.nodes[i];
                 if (d.fixed) {
@@ -506,6 +474,7 @@ Promise.all([promise]).then(promises => {
         if (!isNaN(time_input.value)) {
             time_delay = time_input.value * 1000;
         }
+        time_input.value = "";
     }
 
     function title_set() {
@@ -525,6 +494,7 @@ Promise.all([promise]).then(promises => {
             let new_cur = JSON.stringify(cur_data);
             history.cur.value = new_cur;
         }
+        title_input.value ="";
         modal_set();
     }
 
@@ -543,7 +513,7 @@ Promise.all([promise]).then(promises => {
                 data.nodes[i].color = "black";
             }
             for (let i = 0; i < data.links.length; ++i) {
-                data.links[i].color = "#ddd";
+                data.links[i].color = "#708090";
 
             }
 
@@ -577,7 +547,7 @@ Promise.all([promise]).then(promises => {
                 data.nodes[i].color = "black";
             }
             for (let i = 0; i < data.links.length; ++i) {
-                data.links[i].color = "#ddd";
+                data.links[i].color = "#708090";
 
             }
 
@@ -605,35 +575,42 @@ Promise.all([promise]).then(promises => {
             modal.style.display = "none";
         }
     }
+
+
     var alt = false;
     var agents_visited = -1;
     function key_press(event) {
         var key = event.keyCode;
         if (key == 13) { //enter
-            if (modal.style.display == "none") {
-                load_button.click();
+            if (modal.style.display == "block") {
+                title_set_button.click();
+            } else if (document.getElementById("timeNavigation").style.width == "250px") {
+                timer_set();
             } else {
-                title_set();
+                load_button.click();
             }
         } else if (key == 18) { // alt
             alt = true;
-        } else if (key == 9) { //tab
+        } else if (key == 192) { // `
             if (document.getElementById("sideNavigation").style.width == "250px") {
                 closeNav();
+            } else if (document.getElementById("timeNavigation").style.width == "250px") {
+                closeTimeNav();
+            } else if (document.getElementById("controlNavigation").style.width == "250px") {
+                closeControlNav();
+            } else if (document.getElementById("graphNavigation").style.width == "250px") {
+                closeGraphNav();
             } else {
                 openNav();
             }
         } else if (key == 65 && selection != undefined && alt == true) { //a + alt
             auto_choice.click();
-            dropdown_button.click();
             reduce_button.click();
         } else if (key == 68 && selection != undefined && alt == true) {//d + alt
             duplicate_choice.click();
-            dropdown_button.click();
             reduce_button.click();
         } else if (key == 67 && selection != undefined && alt == true) {//c + alt
             cancel_choice.click();
-            dropdown_button.click();
             reduce_button.click();
         } else if (key == 84 && selection != undefined && alt == true) { //t + alt
             modal_set();
@@ -643,6 +620,8 @@ Promise.all([promise]).then(promises => {
             back_button.click();
         } else if (key == 39) { //right arrow
             forward_button.click();
+        } else if (key == 81 && alt == true) { //q + alt
+            cancel_button.click();
         } else if (key == 90 && alt == true) { //z + alt
             let filtered = svg.select(".node").selectAll("circle")
                 .filter((d, i) => d.color === "black" || d.color === "red");
