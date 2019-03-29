@@ -635,6 +635,8 @@ Promise.all([promise]).then(promises => {
             back_button.click();
         } else if (key == 39) { //right arrow
             forward_button.click();
+        } else if (key == 81 && alt == true) { //q + alt
+            cancel_button.click();
         } else if (key == 90 && alt == true) { //z + alt
             let filtered = svg.select(".node").selectAll("circle")
                 .filter((d, i) => d.color === "black" || d.color === "red");
