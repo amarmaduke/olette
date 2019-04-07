@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         .links line {
-            stroke: #999;
+            stroke: #708090;
             stroke-opacity: 0.6;
         }
 
@@ -29,140 +29,257 @@
             top: 0;
             left: 0;
         }
+        .sidenav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: top: 0;
+            left: 0;
+            background-color: #121F30;
+            overflow-x: hidden;
+            padding-top: 60px;
+            transition: 0.5s;
+        }
+
+        .sidenav a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 25px;
+            color: #818181;
+            display: block;
+            transition: 0.3s
+        }
+
+        .sidenav a:hover, .offcanvas a:focus {
+            color: #121F26;
+        }
+
+        .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+        .sidenav .closeTimebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+        .sidenav .closeControlbtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+        .sidenav .closeGraphbtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+
+        #main {
+            transition: margin-left .5s;
+            padding: 20px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        .topnav {
+            background-color: #121F30;
+            overflow: hidden;
+        }
+
+        .topnav a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+
+                
+        .topnav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        .topnav a.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+
+        a svg {
+            transition: all .5s ease;
+            &:hover{
+            #transform:rotate(180deg);
+            }
+        }
+
+        #ico {
+            display: none;
+        }
+
+        .menu {
+            background: #000;
+            display: none;
+            padding: 5px;
+            width: 320px;
+            @include border-radius(5px);
+            #transition: all 0.5s ease;
+            a {
+            display: block;
+            color: #fff;
+            text-align: center;
+            padding: 10px 2px;
+            margin: 3px 0;
+            text-decoration: none;
+            background: #444;
+            &:nth-child(1) {
+            margin-top: 0;
+            @include border-radius(3px 3px 0 0 );
+            }
+            &:nth-child(5) {
+            margin-bottom: 0;
+            @include border-radius(0 0 3px 3px);
+            }
+            &:hover {
+            background: #555;
+            }
+        }
+        }
     </style>
     <title>Optimal Lambda Evaluation Toy</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
 </head>
 <body id="window">
-    <div class="container is-fluid" style="padding-bottom:5px; padding-top:10px; background-color: #203644;">
-        <center>
-            <h>
-                <strong><font color="#F5F5F5"> Optimal Lambda Evaluation Toy </font> </strong>
-            </h>
-            <div class=" field is-grouped" style="padding-left: 365px; padding-right: 365px; padding-top: 5px; padding-bottom: 5px; background-color:	#203644;">
-                <p class="control is-expanded">
-                    <input id="lambda_input" class="input" type="text" placeholder="λx y. x or \x y. y">
-
-                </p>
-                <p class="control">
-                    <a id="load_button" class="button is-primary" style="background-color:#5B9EA6"> Load </a>
-                </p>
-            </div>
-        </center>
+    <div class="sidenav" id="timeNavigation">
+        <a class="closebtn" id="closeTimeBtn" onclick="closeTimeNav()"><<</a>
+        <p class="control">
+            <strong><font color="#DCDCDC"> Time Delay:<br /> </font></strong>
+            <input id="time_input" class="input" type="text" placeholder="1.5">
+            <a id="timer_set_button" class="button is-primary" style="background-color: #5B9EA6">
+                Set Time (Seconds)
+            </a>
+        </p>
     </div>
-    <div class="container is-fluid" style="background-color: #D0C8B3;">
-        <div>
-            <div class=" field is-grouped" style="padding-left: 170px; padding-right: 110px; padding-top: 5px;">
-                <p class="control">
-                    <a id="reduce_button" class="button is-danger" disabled style="background-color:#752424"> Reduce </a>
-                </p>
-                <p class="control">
-                    <a id="reduce_auto_button" class="button is-danger" disabled style="background-color:#752424"> Auto Reduce  </a>
-                </p>
-                <p class="control">
-                    <a id="cancel_button" class="button is-primary" style="background-color: #5B9EA6"> Cancel </a> <!-- green #73cc99 gray C0C0C0 light gray F5F5F5 beige D0C8B3 -->
-                </p>
-                <p class="control">
-                    <a id="back_button" class="button is-primary" style="background-color: #5B9EA6">  << </a>
-                </p>
-                <p class="control">
-                    <a id="forward_button" class="button is-primary" style="background-color: #5B9EA6"> >> </a>
-                </p>
-                <p class="control">
-                    <div id="dropdown" class="dropdown">
-                        <div class="dropdown-trigger">
-                            <button id="dropdown_button" class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-                                <span>Choose a Rule</span>
-                                <span class="icon is-small">
-                                    <i class="fas fa-angle-down" aria-hidden="true"></i>
-                                </span>
-                            </button>
-                        </div>
-                        <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                            <div class="dropdown-content">
-                                <a id="auto" class="dropdown-item is-active">
-                                    Automatically Decide Rule
-                                </a>
-                                <a id="cancel" class="dropdown-item">
-                                    Use Cancel Rule
-                                </a>
-                                <a id="duplicate" class="dropdown-item">
-                                    Use Duplicate Rule
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </p>
-                <p class="control">
-                    <div id="slider" class="dropdown">
-                        <div class="dropdown-trigger">
-                            <button id="slider_button" class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-                                <span>Time Options</span>
-                                <span class="icon is-small">
-                                    <i class="fas fa-angle-down" aria-hidden="true"></i>
-                                </span>
-                            </button>
-                        </div>
-                        <div class="dropdown-menu" id="slider-menu" role="menu">
-                            <div class="dropdown-content">
-                                <a id="timer_feild" class="dropdown-item" style="padding-left:45px;">
-                                    <center>
-                                        Time Delay:<br />
-                                        <input id="time_input" class="input" type="text" placeholder="1.5">
-                                        <a id="timer_set_button" class="button is-primary" style="background-color: #5B9EA6">
-                                            Set Time (Seconds)
-                                        </a>
-                                    </center>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </p>
-                <p class="control">
-                    <div id="graph" class="dropdown">
-                        <div class="dropdown-trigger">
-                            <button id="graph_button" class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-                                <span>Graph Options</span>
-                                <span class="icon is-small">
-                                    <i class="fas fa-angle-down" aria-hidden="true"></i>
-                                </span>
-                            </button>
-                        </div>
-                        <div class="dropdown-menu" id="graph-menu" role="menu">
-                            <div class="dropdown-content">
-                                <a id="graph_feild" class="dropdown-item" style="padding-left:45px;">
-                                    <center>
-                                        <a id="force_on" class="dropdown-item">
-                                            <a id="force_on_button" class="button is-primary" style="background-color: #5B9EA6"> Force On </a>
-                                        </a>
-                                        <a id="force_off" class="dropdown-item">
-                                            <a id="force_off_button" class="button is-primary" style="background-color: #5B9EA6"> Force Off </a>
-                                        </a>
-                                    </center>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </p>
+    <div class="sidenav" id="controlNavigation">
+        <a class="closebtn" id="closeControlBtn" onclick="closeControlNav()"><<</a>
+        <a id="auto" class="button is-active">
+            Automatically Decide Rule
+        </a>
+        <a id="cancel" class="button">
+            Use Cancel Rule
+        </a>
+        <a id="duplicate" class="button">
+            Use Duplicate Rule
+        </a>
+    </div>
+    <div class="sidenav" id="graphNavigation">
+        <a class="closebtn" id="closeGraphBtn" onclick="closeGraphNav()"><<</a>
+        <a id="force_on_button" class="button is-primary" style="background-color: #5B9EA6"> Force On </a>
+        <a id="force_off_button" class="button is-primary" style="background-color: #5B9EA6"> Force Off </a>
+    </div>
+        <div class="sidenav" id="sideNavigation">
+            <a id="close_button" class="closebtn" onclick="closeNav()">&times;</a>
+            <a><input id="lambda_input" class="input" style="margin-left:0" type="text" placeholder="λx y. x or \x y. y"></a>
+            <a id="load_button" class="button is-primary" style="background-color:#4189A6"> Load </a>
+            <a id="reduce_button" class="button is-danger" disabled style="background-color:#354648"> Reduce </a>
+            <a id="reduce_auto_button" class="button is-danger" disabled style="background-color:#354648"> Auto Reduce  </a>
+            <a id="cancel_button" class="button is-primary" style="background-color: #4189A6"> Cancel </a> <!-- green #73cc99 gray C0C0C0 light gray F5F5F5 beige D0C8B3 -->
+            <a id="back_button" class="button is-primary" style="background-color: #4189A6">  << </a>
+            <a id="forward_button" class="button is-primary" style="background-color: #4189A6"> >> </a>
+            <a onclick="openControlNav()" class="button is-primary" style="background-color: #4189A6"> Choose a Rule >> </a>
+            <a onclick="openTimeNav()" class="button is-primary" style="background-color: #4189A6"> Time Options >> </a>
+            <a onclick="openGraphNav()" class="button is-primary" style="background-color: #4189A6"> Graph Options >> </a>
 
-                <div id="modal" class="modal" style="display:none; width:100%; height:100%; overflow:auto; background-color: rgba(0,0,0,0.4)">
 
-                    <div class="modal-content" style="background-color:#fefefe;margin:15% auto;padding: 20px; border: 1px solid #888; width: 80%">
-                        <span class="close" style="color: #aaa;float: right; font-size: 28px;font-weight: bold">&times;</span>
-                        <center>
-                            Title:<br />
-                            <input id="title_input" class="input" type="text" placeholder="node title">
-                            <a id="title_set_button" class="button is-primary" style="background-color: #5B9EA6">
-                                Set Title
-                            </a>
-                        </center>
-                    </div>
-
-                </div>
-            </div>
         </div>
+        <nav class="topnav">
+            <a onclick="openNav()">
+                <svg width="30" height="30" id="icoOpen">
+                    <path d="M0,5 30,5" stroke="#000" stroke-width="5" />
+                    <path d="M0,14 30,14" stroke="#000" stroke-width="5" />
+                    <path d="M0,23 30,23" stroke="#000" stroke-width="5" />
+                </svg>
+            </a>
+            <center>
+                <br />
+                <strong><font color="#DCDCDC">Optimal Lambda Evaluation Toy </font> </strong>
+            </center>
+        </nav>
+        <div id="main" class="container is-fluid" style="background-color: #DCDCDC; margin-left:0px">
+            <div id="modal" class="modal" style="display:none; width:100%; height:100%; overflow:auto; background-color: rgba(0,0,0,0.4)">
+
+                <div class="modal-content" style="background-color:#121F30; margin:15% auto;padding: 20px; border: 1px solid #888; width: 30%">
+                    <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold">&times;</span>
+                    <center>
+                        <strong><font color="#DCDCDC" > Title:<br /> </font></strong>
+                        <input id="title_input" class="input" type="text" placeholder="node title">
+                        <a id="title_set_button" class="button is-primary" style="background-color: #5B9EA6">
+                            Set Title
+                        </a>
+                    </center>
+                </div>
+
+            </div>
+        
         <div class="net"></div>
-</body id="window">
-        <script defer src="bootstrap.js"></script>
+</body>
+ <script defer src="bootstrap.js"></script>
+ <script>
+     function openNav() {
+         document.getElementById("sideNavigation").style.width = "250px";
+         document.getElementById("main").style.marginLeft = "250px";
+     }
+
+     function closeNav() {
+         document.getElementById("sideNavigation").style.width = "0";
+         document.getElementById("main").style.marginLeft = "0";
+     }
+     function openTimeNav() {
+         closeNav();
+         document.getElementById("timeNavigation").style.width = "250px";
+         document.getElementById("main").style.marginLeft = "250px";
+     }
+     function closeTimeNav() {
+         document.getElementById("timeNavigation").style.width = "0px";
+         document.getElementById("main").style.marginLeft = "0px";
+         openNav();
+     }
+     function openControlNav() {
+         closeNav();
+         document.getElementById("controlNavigation").style.width = "250px";
+         document.getElementById("main").style.marginLeft = "250px";
+     }
+     function closeControlNav() {
+         document.getElementById("controlNavigation").style.width = "0px";
+         document.getElementById("main").style.marginLeft = "0px";
+         openNav();
+     }
+     function openGraphNav() {
+         closeNav();
+         document.getElementById("graphNavigation").style.width = "250px";
+         document.getElementById("main").style.marginLeft = "250px";
+     }
+     function closeGraphNav() {
+         document.getElementById("graphNavigation").style.width = "0px";
+         document.getElementById("main").style.marginLeft = "0px";
+         openNav();
+     }
+
+ </script>
 </html>

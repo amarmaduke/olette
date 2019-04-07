@@ -25,9 +25,6 @@ const timer_set_button = document.getElementById("timer_set_button");
 const title_input = document.getElementById("title_input");
 const title_set_button = document.getElementById("title_set_button");
 const window = document.getElementById("window");
-const close_button = document.getElementById("close_button");
-var modal = document.getElementById('modal');
-var span = document.getElementsByClassName("close")[0];
 
 var continue_reduce = false;
 var time_delay = 1500;
@@ -139,8 +136,6 @@ Promise.all([promise]).then(promises => {
     timer_set_button.addEventListener("click", button_interact(timer_set_button, timer_set), true);
 
     title_set_button.addEventListener("click", button_interact(title_set_button, title_set), true);
-
-    span.addEventListener("click", button_interact(span, modal_set), true);
 
     window.addEventListener("keydown", key_press, true);
     window.addEventListener("keyup", key_up, true);
@@ -474,7 +469,7 @@ Promise.all([promise]).then(promises => {
         if (!isNaN(time_input.value)) {
             time_delay = time_input.value * 1000;
         }
-        time_input.value = "";
+        time_input.value = '';
     }
 
     function title_set() {
@@ -494,8 +489,7 @@ Promise.all([promise]).then(promises => {
             let new_cur = JSON.stringify(cur_data);
             history.cur.value = new_cur;
         }
-        title_input.value ="";
-        modal_set();
+        title_input.value ='';
     }
 
     function back() {
@@ -567,14 +561,6 @@ Promise.all([promise]).then(promises => {
         }
     }
 
-    function modal_set() {
-
-        if (modal.style.display == "none") {
-            modal.style.display = "block";
-        } else {
-            modal.style.display = "none";
-        }
-    }
 
 
     var alt = false;
@@ -582,7 +568,7 @@ Promise.all([promise]).then(promises => {
     function key_press(event) {
         var key = event.keyCode;
         if (key == 13) { //enter
-            if (modal.style.display == "block") {
+            if (document.getElementById("titleNavigation").style.width == "250px") {
                 title_set_button.click();
             } else if (document.getElementById("timeNavigation").style.width == "250px") {
                 timer_set();
@@ -612,8 +598,6 @@ Promise.all([promise]).then(promises => {
         } else if (key == 67 && selection != undefined && alt == true) {//c + alt
             cancel_choice.click();
             reduce_button.click();
-        } else if (key == 84 && selection != undefined && alt == true) { //t + alt
-            modal_set();
         } else if (key == 82 && alt == true) { //r + alt
             reduce_auto_button.click();
         } else if (key == 37 ) { //left arrow
