@@ -149,6 +149,30 @@ Promise.all([promise]).then(promises => {
         }
     }
 
+    var width = document.documentElement.clientWidth;
+    var height = document.documentElement.clientHeight;
+
+    var holder = d3.select("body")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    // draw the text
+    holder.append("text")
+        .style("fill", "black")
+        .style("font-size", "56px")
+        .attr("dy", ".35em")
+        .attr("text-anchor", "middle")
+        .attr("transform", "translate(300,150) rotate(0)")
+        .text("Test Rotation");
+
+    // when the input range changes update the angle 
+    d3.select("#nAngle").on("input", function () {
+        updateAngle(+this.value);
+    });
+
+    // Initial starting angle of the text 
+    updateAngle(0);
 
 
     var width = document.documentElement.clientWidth;
@@ -193,6 +217,7 @@ Promise.all([promise]).then(promises => {
         svg.append("g").attr("class", "label");
         svg.append("g").attr("class", "title");
     }
+
 
     function update(alpha) {
         var t = d3.transition().duration(250);
@@ -353,6 +378,17 @@ Promise.all([promise]).then(promises => {
             .text(d => d.title)
             .style("font-size", "20px")
             .style("fill", "#203644");
+    }
+    function updateAngle(nAngle) {
+
+        // adjust the text on the range slider
+        d3.select("#nAngle-value").text(nAngle);
+        d3.select("#nAngle").property("value", nAngle);
+
+        // rotate the text
+        holder.select("text")
+            .attr("transform", "translate(300,150) rotate(" + nAngle + ")");
+        
     }
 
     function clicked(d) {

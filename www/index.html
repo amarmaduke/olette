@@ -29,6 +29,7 @@
             top: 0;
             left: 0;
         }
+
         .sidenav .button {
             background-color: #4189A6;
             width: 150px;
@@ -37,9 +38,10 @@
             margin-left: 50px;
             font-size: small;
             color: #DCDCDC;
-            text-align:center;
-            padding-left:0px;
+            text-align: center;
+            padding-left: 0px;
         }
+
         .sidenav {
             height: 100%;
             width: 0;
@@ -52,55 +54,58 @@
             transition: 0.5s;
         }
 
-        .sidenav a {
-            padding: 8px 8px 8px 32px;
-            text-decoration: none;
-            font-size: 25px;
-            color: #818181;
-            display: block;
-            transition: 0.3s
-        }
+            .sidenav a {
+                padding: 8px 8px 8px 32px;
+                text-decoration: none;
+                font-size: 25px;
+                color: #818181;
+                display: block;
+                transition: 0.3s
+            }
 
-        .sidenav a:hover, .offcanvas a:focus {
-            color: #121F26;
-        }
+                .sidenav a:hover, .offcanvas a:focus {
+                    color: #121F26;
+                }
 
-        .sidenav .closebtn {
-            position: absolute;
-            top: 0;
-            right: 25px;
-            font-size: 36px;
-            margin-left: 50px;
-        }
+            .sidenav .closebtn {
+                position: absolute;
+                top: 0;
+                right: 25px;
+                font-size: 36px;
+                margin-left: 50px;
+            }
 
-        .sidenav .closeTimebtn {
-            position: absolute;
-            top: 0;
-            right: 25px;
-            font-size: 36px;
-            margin-left: 50px;
-        }
-        .sidenav .closeControlbtn {
-            position: absolute;
-            top: 0;
-            right: 25px;
-            font-size: 36px;
-            margin-left: 50px;
-        }
-        .sidenav .closeGraphbtn {
-            position: absolute;
-            top: 0;
-            right: 25px;
-            font-size: 36px;
-            margin-left: 50px;
-        }
-        .sidenav .closeTitlebtn {
-            position: absolute;
-            top: 0;
-            right: 25px;
-            font-size: 36px;
-            margin-left: 50px;
-        }
+            .sidenav .closeTimebtn {
+                position: absolute;
+                top: 0;
+                right: 25px;
+                font-size: 36px;
+                margin-left: 50px;
+            }
+
+            .sidenav .closeControlbtn {
+                position: absolute;
+                top: 0;
+                right: 25px;
+                font-size: 36px;
+                margin-left: 50px;
+            }
+
+            .sidenav .closeGraphbtn {
+                position: absolute;
+                top: 0;
+                right: 25px;
+                font-size: 36px;
+                margin-left: 50px;
+            }
+
+            .sidenav .closeTitlebtn {
+                position: absolute;
+                top: 0;
+                right: 25px;
+                font-size: 36px;
+                margin-left: 50px;
+            }
 
         #main {
             transition: margin-left .5s;
@@ -118,34 +123,37 @@
             overflow: hidden;
         }
 
-        .topnav a {
-            float: left;
-            display: block;
-            color: #f2f2f2;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-            font-size: 17px;
-        }
+            .topnav a {
+                float: left;
+                display: block;
+                color: #f2f2f2;
+                text-align: center;
+                padding: 14px 16px;
+                text-decoration: none;
+                font-size: 17px;
+            }
 
 
-        .topnav a:hover {
-            background-color: #A9A9A9;
-            color: black;
-        }
+                .topnav a:hover {
+                    background-color: #A9A9A9;
+                    color: black;
+                }
 
-        .topnav a.active {
-            background-color: #4CAF50;
-            color: white;
-        }
+                .topnav a.active {
+                    background-color: #4CAF50;
+                    color: white;
+                }
 
 
 
         a svg {
             transition: all .5s ease;
-            &:hover{
+            &:hover
+
+        {
             #transform:rotate(180deg);
-            }
+        }
+
         }
 
         #ico {
@@ -159,7 +167,9 @@
             width: 320px;
             @include border-radius(5px);
             #transition: all 0.5s ease;
-            a {
+            a
+
+        {
             display: block;
             color: #fff;
             text-align: center;
@@ -167,23 +177,29 @@
             margin: 3px 0;
             text-decoration: none;
             background: #444;
-            &:nth-child(1) {
+            &:nth-child(1)
+
+        {
             margin-top: 0;
             @include border-radius(3px 3px 0 0 );
-            }
-            &:nth-child(5) {
+        }
+
+        &:nth-child(5) {
             margin-bottom: 0;
             @include border-radius(0 0 3px 3px);
-            }
-            &:hover {
+        }
+
+        &:hover {
             background: #555;
-            }
+        }
+
         }
         }
     </style>
     <title>Optimal Lambda Evaluation Toy</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
 </head>
 <body id="window">
     <div class="sidenav" id="timeNavigation">
@@ -220,6 +236,10 @@
             <font color="#DCDCDC"> Graph Node Options: </font>
             <a id="force_on_button" class="button"> Force On </a>
             <a id="force_off_button" class="button"> Force Off </a>
+            <label for="nAngle">
+                angle = <span id="nAngle-value">…</span>
+            </label>
+            <input type="range" min="0" max="360" id="nAngle">
         </strong>
     </div>
 
@@ -281,6 +301,7 @@
         </div>
 
         <div class="net"></div>
+    
 </body>
  <script defer src="bootstrap.js"></script>
  <script>
