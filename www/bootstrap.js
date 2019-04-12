@@ -171,8 +171,6 @@ Promise.all([promise]).then(promises => {
         updateAngle(+this.value);
     });
 
-    // Initial starting angle of the text 
-    updateAngle(0);
 
 
     var width = document.documentElement.clientWidth;
@@ -369,6 +367,7 @@ Promise.all([promise]).then(promises => {
 
         label.attr("x", d => d.x)
             .attr("y", d => d.y)
+            .attr("transform", "rotate(0)")
             .text(d => d.label)
             .style("font-size", "20px")
             .style("fill", "#4393c3");
@@ -378,17 +377,6 @@ Promise.all([promise]).then(promises => {
             .text(d => d.title)
             .style("font-size", "20px")
             .style("fill", "#203644");
-    }
-    function updateAngle(nAngle) {
-
-        // adjust the text on the range slider
-        d3.select("#nAngle-value").text(nAngle);
-        d3.select("#nAngle").property("value", nAngle);
-
-        // rotate the text
-        holder.select("text")
-            .attr("transform", "translate(300,150) rotate(" + nAngle + ")");
-        
     }
 
     function clicked(d) {
@@ -428,6 +416,7 @@ Promise.all([promise]).then(promises => {
         history.addHead(JSON.stringify(data));
         update(1.0);
         Storage.set("net", data);
+        updateAngle(0);
     }
 
     function reduce() {
@@ -526,6 +515,28 @@ Promise.all([promise]).then(promises => {
             history.cur.value = new_cur;
         }
         title_input.value ='';
+    }
+
+    function updateAngle(nAngle) {
+
+        // adjust the text on the range slider
+        d3.select("#nAngle-value").text(nAngle);
+        d3.select("#nAngle").property("value", nAngle);
+
+        // rotate the text
+        holder.select("text")
+            .attr("transform", "translate(300,150) rotate(" + nAngle + ")");
+
+        //let cur = svg.select(".node").selectAll("text")
+            //.data(data.nodes, d => d.id);
+        //console.log(cur);
+        let cur = node.filter((d, i) => d.id === selection).node();
+        console.log(cur);
+        if (cur != null) {
+            cur.append("text").attr("transform", "rotate(" + nAngle + ")");
+            update(1.0);
+            console.log("made it!");
+        }
     }
 
     function back() {
