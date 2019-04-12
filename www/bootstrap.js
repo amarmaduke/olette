@@ -24,11 +24,17 @@ const slider = document.getElementById("slider");
 const slider_button = document.getElementById("slider_button");
 const time_input = document.getElementById("time_input");
 const timer_set_button = document.getElementById("timer_set_button");
+const title_input = document.getElementById("title_input");
+const title_set_button = document.getElementById("title_set_button");
 const graph = document.getElementById("graph");
 const graph_button = document.getElementById("graph_button");
+const window = document.getElementById("window");
+var modal = document.getElementById('modal');
+var span = document.getElementsByClassName("close")[0];
 
 var continue_reduce = false;
 var time_delay = 1500;
+
 
 class Node {
     constructor(value, next, prev) {
@@ -75,7 +81,7 @@ Promise.all([promise]).then(promises => {
     var rule_kind = "auto";
     var current_active = auto_choice;
     var simulation, simulation_flag = true;
-    var node, link, port, label;
+    var node, link, port, label, title;
     var data;
 
 
@@ -161,6 +167,12 @@ Promise.all([promise]).then(promises => {
 
     timer_set_button.addEventListener("click", button_interact(timer_set_button, timer_set), true);
 
+    title_set_button.addEventListener("click", button_interact(title_set_button, title_set), true);
+
+    span.addEventListener("click", button_interact(span, modal_set), true);
+
+    window.addEventListener("keydown", key_press, true);
+    window.addEventListener("keyup", key_up, true);
 
     function button_interact(button, callback) {
         return (element, event) => {
@@ -212,6 +224,7 @@ Promise.all([promise]).then(promises => {
         svg.append("g").attr("class", "node");
         svg.append("g").attr("class", "port");
         svg.append("g").attr("class", "label");
+        svg.append("g").attr("class", "title");
     }
 
     function update(alpha) {
@@ -245,6 +258,7 @@ Promise.all([promise]).then(promises => {
             .attr("fx", d => d.fx)
             .attr("fy", d => d.fy)
             .attr("id", d => d.id)
+            .attr("title", d => d.title)
             .on("click", clicked)
             .merge(node);
         //.append("title", d => d.id)
@@ -275,6 +289,24 @@ Promise.all([promise]).then(promises => {
             .on("click", clicked)
             .merge(label);
         label.call(drag);
+
+        title = svg.select(".title").selectAll("text")
+            .data(data.nodes, d => d.id);
+        title.exit().transition(t)
+            .style("opacity", 1e-6)
+            .remove();
+        title = title.enter().append("text")
+            .attr('text-anchor', 'start')
+            .attr('dominant-baseline', 'text-after-edge')
+            .style('font-family', 'Helvetica')
+            .style('font-size', '4px')
+            .style("cursor", "pointer")
+            .text(d => d.title)
+            .on("click", clicked)
+            .merge(title);
+        title.call(drag);
+            
+
 
         simulation.nodes(data.nodes).on("tick", tick);
         simulation.force("link").links(data.links)
@@ -348,6 +380,12 @@ Promise.all([promise]).then(promises => {
             .text(d => d.label)
             .style("font-size", "20px")
             .style("fill", "#4393c3");
+
+        title.attr("x", d => d.x +20)
+            .attr("y", d => d.y)
+            .text(d => d.title)
+            .style("font-size", "20px")
+            .style("fill", "#203644");
     }
 
     function clicked(d) {
@@ -387,19 +425,6 @@ Promise.all([promise]).then(promises => {
         history.addHead(JSON.stringify(data));
         update(1.0);
         Storage.set("net", data);
-      /*let update_History = JSON.parse(history.head.value);
-        for (let i = 0; i < update_History.nodes.length; i++) {
-            let d = update_History.nodes[i];
-            for (let r = 0; r < data.nodes.length; r++) {
-                if (r.id == d.id) {
-                    d.x = r.x
-                    d.y = r.y
-                }
-            }
-        }
-        history.addHead(JSON.stringify(update_History));
-        console.log(JSON.stringify(update_History));
-        */
     }
 
     function reduce() {
@@ -412,14 +437,17 @@ Promise.all([promise]).then(promises => {
                     "x": d.x,
                     "y": d.y,
                     "fixed": d.fixed,
-                    "label": d.label
+                    "label": d.label,
+                    "title": d.title
                 };
+                console.log(k.title);
                 darray.nodes.push(k);
             }
             olette.update_net(JSON.stringify(darray));
             var patch = JSON.parse(olette.reduce_net(selection, rule_kind));
             simulation.stop();
             data = patch;
+            console.log(data);
             for (let i = 0; i < data.nodes.length; ++i) {
                 let d = data.nodes[i];
                 if (d.fixed) {
@@ -476,6 +504,26 @@ Promise.all([promise]).then(promises => {
         if (!isNaN(time_input.value)) {
             time_delay = time_input.value * 1000;
         }
+    }
+
+    function title_set() {
+        if (typeof title_input.value === 'string' || title_input.value instanceof String) {
+            title_set = title_input.value;
+        }
+        let cur = node.filter((d, i) => d.id === selection).node();
+        if (cur != null) {
+            cur.__data__.title = title_input.value;
+            update(1.0);
+            let cur_data = JSON.parse(history.cur.value);
+            for (let i = 0; i < cur_data.nodes.length; ++i) {
+                if (cur.__data__.id == cur_data.nodes[i].id) {
+                    cur_data.nodes[i].title = cur.__data__.title;
+                }
+            }
+            let new_cur = JSON.stringify(cur_data);
+            history.cur.value = new_cur;
+        }
+        modal_set();
     }
 
     function back() {
@@ -547,24 +595,49 @@ Promise.all([promise]).then(promises => {
         }
     }
 
+    function modal_set() {
+
+        if (modal.style.display == "none") {
+            modal.style.display = "block";
+        } else {
+            modal.style.display = "none";
+        }
+    }
+    var alt = false;
     var agents_visited = -1;
-    document.onkeydown = function (event) {
+    function key_press(event) {
         var key = event.keyCode;
-        if (key == 13) {
-            load_button.click();
-        } else if (key == 65 && selection != undefined) {
+        if (key == 13) { //enter
+            if (modal.style.display == "none") {
+                load_button.click();
+            } else {
+                title_set();
+            }
+        } else if (key == 18) { // alt
+            alt = true;
+        } else if (key == 65 && selection != undefined && alt == true) { //a + alt
             auto_choice.click();
             dropdown_button.click();
             reduce_button.click();
-        } else if (key == 68 && selection != undefined) {
+        } else if (key == 68 && selection != undefined && alt == true) {//d + alt
             duplicate_choice.click();
             dropdown_button.click();
             reduce_button.click();
-        } else if (key == 67 && selection != undefined) {
+        } else if (key == 67 && selection != undefined && alt == true) {//c + alt
             cancel_choice.click();
             dropdown_button.click();
             reduce_button.click();
-        } else if (key == 90) {
+        } else if (key == 84 && selection != undefined && alt == true) { //t + alt
+            modal_set();
+        } else if (key == 82 && alt == true) { //r + alt
+            reduce_auto_button.click();
+        } else if (key == 37) { //left arrow
+            back_button.click();
+        } else if (key == 39) { //right arrow
+            forward_button.click();
+        } else if (key == 81 && alt == true) { //q + alt
+            cancel_button.click();
+        } else if (key == 90 && alt == true) { //z + alt
             let filtered = svg.select(".node").selectAll("circle")
                 .filter((d, i) => d.color === "black" || d.color === "red");
 
@@ -579,11 +652,16 @@ Promise.all([promise]).then(promises => {
                     agents_visited += 1;
                 }
             });
-        } else if (key >= 48 && key <= 57 && selection != undefined) {
-            let d = data.nodes.filter(d => d.id === selection)[0];
-            d.label = "" + (key - 48);
         }
-    };
+    }
+
+    function key_up(event) {
+        var key = event.keyCode;
+        if (key == 18) {
+            alt = false;
+        }
+    }
+
 
     function dragstarted(d) {
         if (!d3.event.active) simulation.alphaTarget(0.3).restart();
