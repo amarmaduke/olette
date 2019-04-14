@@ -28,6 +28,7 @@ const window = document.getElementById("window");
 
 var continue_reduce = false;
 var time_delay = 1500;
+var rotationAngle = 0;
 
 
 class Node {
@@ -367,7 +368,7 @@ Promise.all([promise]).then(promises => {
 
         label.attr("x", d => d.x)
             .attr("y", d => d.y)
-            .attr("transform", "rotate(0)")
+            .attr("transform", "rotate(" + rotationAngle + ")")
             .text(d => d.label)
             .style("font-size", "20px")
             .style("fill", "#4393c3");
@@ -530,13 +531,8 @@ Promise.all([promise]).then(promises => {
         //let cur = svg.select(".node").selectAll("text")
             //.data(data.nodes, d => d.id);
         //console.log(cur);
-        let cur = node.filter((d, i) => d.id === selection).node();
-        console.log(cur);
-        if (cur != null) {
-            cur.append("text").attr("transform", "rotate(" + nAngle + ")");
-            update(1.0);
-            console.log("made it!");
-        }
+        rotationAngle = nAngle;
+        update(1.0);
     }
 
     function back() {
