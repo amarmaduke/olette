@@ -28,7 +28,6 @@ const window = document.getElementById("window");
 
 var continue_reduce = false;
 var time_delay = 1500;
-var rotationAngle = 0;
 
 
 class Node {
@@ -75,7 +74,7 @@ Promise.all([promise]).then(promises => {
 
     var rule_kind = "auto";
     var simulation, simulation_flag = true;
-    var node, link, port, label, title;
+    var node, link, port, label, title, rotation;
     var data;
 
 
@@ -250,6 +249,7 @@ Promise.all([promise]).then(promises => {
             .attr("fy", d => d.fy)
             .attr("id", d => d.id)
             .attr("title", d => d.title)
+            .attr("rotation", d=>d.rotation)
             .on("click", clicked)
             .merge(node);
         //.append("title", d => d.id)
@@ -296,6 +296,22 @@ Promise.all([promise]).then(promises => {
             .on("click", clicked)
             .merge(title);
         title.call(drag);
+
+        rotation = svg.select(".rotation").selectAll("text")
+            .data(data.nodes, d => d.id);
+        rotation.exit().transition(t)
+            .style("opacity", 1e-6)
+            .remove();
+        rotation = rotation.enter().append("text")
+            .attr('text-anchor', 'start')
+            .attr('dominant-baseline', 'text-after-edge')
+            .style('font-family', 'Helvetica')
+            .style('font-size', '4px')
+            .style("cursor", "pointer")
+            .text(d => d.rotation)
+            .on("click", clicked)
+            .merge(rotation);
+        rotation.call(drag);
             
 
 
@@ -365,10 +381,9 @@ Promise.all([promise]).then(promises => {
 
         port.attr("cx", d => 15 * Math.cos(toRadians(d.ports[0])) + d.x)
             .attr("cy", d => 15 * Math.sin(toRadians(d.ports[0])) + d.y);
-
+        
         label.attr("x", d => d.x)
             .attr("y", d => d.y)
-            .attr("transform", "rotate(" + rotationAngle + ")")
             .text(d => d.label)
             .style("font-size", "20px")
             .style("fill", "#4393c3");
@@ -376,6 +391,12 @@ Promise.all([promise]).then(promises => {
         title.attr("x", d => d.x +20)
             .attr("y", d => d.y)
             .text(d => d.title)
+            .style("font-size", "20px")
+            .style("fill", "#203644");
+
+        rotation.attr("x", d => d.x - 20)
+            .attr("y", d => d.y)
+            .text(d => d.rotation)
             .style("font-size", "20px")
             .style("fill", "#203644");
     }
@@ -528,11 +549,19 @@ Promise.all([promise]).then(promises => {
         holder.select("text")
             .attr("transform", "translate(300,150) rotate(" + nAngle + ")");
 
-        //let cur = svg.select(".node").selectAll("text")
-            //.data(data.nodes, d => d.id);
-        //console.log(cur);
-        rotationAngle = nAngle;
-        update(1.0);
+        let cur = node.filter((d, i) => d.id === selection).node();
+        if (cur != null) {
+            cur.__data__.rotation = nAngle;
+            update(1.0);
+            let cur_data = JSON.parse(history.cur.value);
+            for (let i = 0; i < cur_data.nodes.length; ++i) {
+                if (cur.__data__.id == cur_data.nodes[i].id) {
+                    cur_data.nodes[i].rotation = cur.__data__.rotation;
+                }
+            }
+            let new_cur = JSON.stringify(cur_data);
+            history.cur.value = new_cur;
+        }
     }
 
     function back() {
