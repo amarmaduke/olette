@@ -28,6 +28,7 @@ const window = document.getElementById("window");
 
 var continue_reduce = false;
 var time_delay = 1500;
+var rotationAngle = 0;
 
 
 class Node {
@@ -149,24 +150,6 @@ Promise.all([promise]).then(promises => {
         }
     }
 
-    var width = document.documentElement.clientWidth;
-    var height = document.documentElement.clientHeight;
-
-    var holder = d3.select("body")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height);
-
-    // draw the text
-    holder.append("text")
-        .style("fill", "black")
-        .style("font-size", "56px")
-        .attr("dy", ".35em")
-        .attr("text-anchor", "middle")
-        .attr("transform", "translate(300,150) rotate(0)")
-        .text("Test Rotation");
-
-    // when the input range changes update the angle 
     d3.select("#nAngle").on("input", function () {
         updateAngle(+this.value);
     });
@@ -273,6 +256,7 @@ Promise.all([promise]).then(promises => {
         label = label.enter().append("text")
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'central')
+            .attr("transform",d =>  "rotate("+d.rotation+","+d.x+","+d.y+")")
             .style('font-family', 'Helvetica')
             .style('font-size', '8px')
             .style("cursor", "pointer")
@@ -302,16 +286,6 @@ Promise.all([promise]).then(promises => {
         rotation.exit().transition(t)
             .style("opacity", 1e-6)
             .remove();
-        rotation = rotation.enter().append("text")
-            .attr('text-anchor', 'start')
-            .attr('dominant-baseline', 'text-after-edge')
-            .style('font-family', 'Helvetica')
-            .style('font-size', '4px')
-            .style("cursor", "pointer")
-            .text(d => d.rotation)
-            .on("click", clicked)
-            .merge(rotation);
-        rotation.call(drag);
             
 
 
@@ -334,10 +308,10 @@ Promise.all([promise]).then(promises => {
             .attr("stroke", d => d.color ? d.color : "#708090")
             .attr("stroke-width", d => d.width ? d.width : "2")
             .attr("d", d => {
-                let tx_normal = Math.cos(toRadians(d.ports.t));
-                let ty_normal = Math.sin(toRadians(d.ports.t));
-                let sx_normal = Math.cos(toRadians(d.ports.s));
-                let sy_normal = Math.sin(toRadians(d.ports.s));
+                let tx_normal = Math.cos(toRadians(d.ports.t + d.target.rotation));
+                let ty_normal = Math.sin(toRadians(d.ports.t + d.target.rotation));
+                let sx_normal = Math.cos(toRadians(d.ports.s + d.source.rotation));
+                let sy_normal = Math.sin(toRadians(d.ports.s + d.source.rotation));
 
                 let r = 15;
                 let p = 4;
@@ -379,11 +353,12 @@ Promise.all([promise]).then(promises => {
             .attr("cy", d => d.y)
             .attr("stroke", d => d.color);
 
-        port.attr("cx", d => 15 * Math.cos(toRadians(d.ports[0])) + d.x)
-            .attr("cy", d => 15 * Math.sin(toRadians(d.ports[0])) + d.y);
+        port.attr("cx", d => 15 * Math.cos(toRadians(d.ports[0] + d.rotation)) + d.x)
+            .attr("cy", d => 15 * Math.sin(toRadians(d.ports[0] + d.rotation)) + d.y);
         
         label.attr("x", d => d.x)
             .attr("y", d => d.y)
+            .attr("transform", d => "rotate(" + d.rotation + "," + d.x + "," + d.y + ")")
             .text(d => d.label)
             .style("font-size", "20px")
             .style("fill", "#4393c3");
@@ -452,7 +427,8 @@ Promise.all([promise]).then(promises => {
                     "y": d.y,
                     "fixed": d.fixed,
                     "label": d.label,
-                    "title": d.title
+                    "title": d.title,
+                    "rotation": d.rotation
                 };
                 darray.nodes.push(k);
             }
@@ -545,10 +521,6 @@ Promise.all([promise]).then(promises => {
         d3.select("#nAngle-value").text(nAngle);
         d3.select("#nAngle").property("value", nAngle);
 
-        // rotate the text
-        holder.select("text")
-            .attr("transform", "translate(300,150) rotate(" + nAngle + ")");
-
         let cur = node.filter((d, i) => d.id === selection).node();
         if (cur != null) {
             cur.__data__.rotation = nAngle;
@@ -562,6 +534,7 @@ Promise.all([promise]).then(promises => {
             let new_cur = JSON.stringify(cur_data);
             history.cur.value = new_cur;
         }
+        rotationAngle = nAngle;
     }
 
     function back() {
