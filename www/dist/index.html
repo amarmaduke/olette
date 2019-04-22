@@ -29,7 +29,6 @@
             top: 0;
             left: 0;
         }
-
         .sidenav .button {
             background-color: #4189A6;
             width: 150px;
@@ -41,7 +40,6 @@
             text-align: center;
             padding-left: 0px;
         }
-
         .sidenav {
             height: 100%;
             width: 0;
@@ -54,18 +52,18 @@
             transition: 0.5s;
         }
 
-            .sidenav a {
-                padding: 8px 8px 8px 32px;
-                text-decoration: none;
-                font-size: 25px;
-                color: #818181;
-                display: block;
-                transition: 0.3s
-            }
+        .sidenav a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 25px;
+            color: #818181;
+            display: block;
+            transition: 0.3s
+        }
 
-                .sidenav a:hover, .offcanvas a:focus {
-                    color: #121F26;
-                }
+        .sidenav a:hover, .offcanvas a:focus {
+            color: #121F26;
+        }
 
             .sidenav .closebtn {
                 position: absolute;
@@ -133,16 +131,16 @@
                 font-size: 17px;
             }
 
+            .topnav a:hover {
+                background-color: #A9A9A9;
+                color: black;
+            }
 
-                .topnav a:hover {
-                    background-color: #A9A9A9;
-                    color: black;
-                }
+            .topnav a.active {
+                background-color: #4CAF50;
+                color: white;
+            }
 
-                .topnav a.active {
-                    background-color: #4CAF50;
-                    color: white;
-                }
 
 
 
@@ -265,6 +263,7 @@
             <font color="#DCDCDC"> History: </font> <br />
             <a id="back_button" class="button">  << </a>
             <a id="forward_button" class="button"> >> </a>
+            <a id="forward_button" class="button" > >> </a>
             <font color="#DCDCDC"> More Options:</font>
             <a onclick="openControlNav()" class="button"> Choose a Rule >> </a>
             <a onclick="openTimeNav()" class="button"> Time Options >> </a>
