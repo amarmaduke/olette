@@ -28,6 +28,7 @@ const window = document.getElementById("window");
 
 var continue_reduce = false;
 var time_delay = 1500;
+var rotationAngle = 0;
 
 
 class Node {
@@ -74,7 +75,7 @@ Promise.all([promise]).then(promises => {
 
     var rule_kind = "auto";
     var simulation, simulation_flag = true;
-    var node, link, port, label, title;
+    var node, link, port, label, title, rotation;
     var data;
 
 
@@ -149,6 +150,10 @@ Promise.all([promise]).then(promises => {
         }
     }
 
+    d3.select("#nAngle").on("input", function () {
+        updateAngle(+this.value);
+    });
+
 
 
     var width = document.documentElement.clientWidth;
@@ -194,6 +199,7 @@ Promise.all([promise]).then(promises => {
         svg.append("g").attr("class", "title");
     }
 
+
     function update(alpha) {
         var t = d3.transition().duration(250);
         let drag = d3.drag()
@@ -226,6 +232,7 @@ Promise.all([promise]).then(promises => {
             .attr("fy", d => d.fy)
             .attr("id", d => d.id)
             .attr("title", d => d.title)
+            .attr("rotation", d=>d.rotation)
             .on("click", clicked)
             .merge(node);
         //.append("title", d => d.id)
@@ -249,6 +256,7 @@ Promise.all([promise]).then(promises => {
         label = label.enter().append("text")
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'central')
+            .attr("transform",d =>  "rotate("+d.rotation+","+d.x+","+d.y+")")
             .style('font-family', 'Helvetica')
             .style('font-size', '8px')
             .style("cursor", "pointer")
@@ -272,6 +280,12 @@ Promise.all([promise]).then(promises => {
             .on("click", clicked)
             .merge(title);
         title.call(drag);
+
+        rotation = svg.select(".rotation").selectAll("text")
+            .data(data.nodes, d => d.id);
+        rotation.exit().transition(t)
+            .style("opacity", 1e-6)
+            .remove();
             
 
 
@@ -294,10 +308,10 @@ Promise.all([promise]).then(promises => {
             .attr("stroke", d => d.color ? d.color : "#708090")
             .attr("stroke-width", d => d.width ? d.width : "2")
             .attr("d", d => {
-                let tx_normal = Math.cos(toRadians(d.ports.t));
-                let ty_normal = Math.sin(toRadians(d.ports.t));
-                let sx_normal = Math.cos(toRadians(d.ports.s));
-                let sy_normal = Math.sin(toRadians(d.ports.s));
+                let tx_normal = Math.cos(toRadians(d.ports.t + d.target.rotation));
+                let ty_normal = Math.sin(toRadians(d.ports.t + d.target.rotation));
+                let sx_normal = Math.cos(toRadians(d.ports.s + d.source.rotation));
+                let sy_normal = Math.sin(toRadians(d.ports.s + d.source.rotation));
 
                 let r = 15;
                 let p = 4;
@@ -339,11 +353,12 @@ Promise.all([promise]).then(promises => {
             .attr("cy", d => d.y)
             .attr("stroke", d => d.color);
 
-        port.attr("cx", d => 15 * Math.cos(toRadians(d.ports[0])) + d.x)
-            .attr("cy", d => 15 * Math.sin(toRadians(d.ports[0])) + d.y);
-
+        port.attr("cx", d => 15 * Math.cos(toRadians(d.ports[0] + d.rotation)) + d.x)
+            .attr("cy", d => 15 * Math.sin(toRadians(d.ports[0] + d.rotation)) + d.y);
+        
         label.attr("x", d => d.x)
             .attr("y", d => d.y)
+            .attr("transform", d => "rotate(" + d.rotation + "," + d.x + "," + d.y + ")")
             .text(d => d.label)
             .style("font-size", "20px")
             .style("fill", "#4393c3");
@@ -351,6 +366,12 @@ Promise.all([promise]).then(promises => {
         title.attr("x", d => d.x +20)
             .attr("y", d => d.y)
             .text(d => d.title)
+            .style("font-size", "20px")
+            .style("fill", "#203644");
+
+        rotation.attr("x", d => d.x - 20)
+            .attr("y", d => d.y)
+            .text(d => d.rotation)
             .style("font-size", "20px")
             .style("fill", "#203644");
     }
@@ -392,6 +413,7 @@ Promise.all([promise]).then(promises => {
         history.addHead(JSON.stringify(data));
         update(1.0);
         Storage.set("net", data);
+        updateAngle(0);
     }
 
     function reduce() {
@@ -405,7 +427,8 @@ Promise.all([promise]).then(promises => {
                     "y": d.y,
                     "fixed": d.fixed,
                     "label": d.label,
-                    "title": d.title
+                    "title": d.title,
+                    "rotation": d.rotation
                 };
                 darray.nodes.push(k);
             }
@@ -490,6 +513,28 @@ Promise.all([promise]).then(promises => {
             history.cur.value = new_cur;
         }
         title_input.value ='';
+    }
+
+    function updateAngle(nAngle) {
+
+        // adjust the text on the range slider
+        d3.select("#nAngle-value").text(nAngle);
+        d3.select("#nAngle").property("value", nAngle);
+
+        let cur = node.filter((d, i) => d.id === selection).node();
+        if (cur != null) {
+            cur.__data__.rotation = nAngle;
+            update(1.0);
+            let cur_data = JSON.parse(history.cur.value);
+            for (let i = 0; i < cur_data.nodes.length; ++i) {
+                if (cur.__data__.id == cur_data.nodes[i].id) {
+                    cur_data.nodes[i].rotation = cur.__data__.rotation;
+                }
+            }
+            let new_cur = JSON.stringify(cur_data);
+            history.cur.value = new_cur;
+        }
+        rotationAngle = nAngle;
     }
 
     function back() {

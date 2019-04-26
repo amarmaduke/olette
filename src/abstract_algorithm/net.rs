@@ -67,6 +67,7 @@ pub struct Agent {
     kind : AgentKind,
     label : String,
 	title : String,
+	rotation : usize,
     x : f32,
     y : f32,
     fixed : bool,
@@ -80,6 +81,7 @@ impl Agent {
             kind,
             label: String::new(),
 			title: String::new(),
+			rotation: 0,
             x: 0.,
             y: 0.,
             fixed: false,
@@ -200,7 +202,8 @@ pub struct NodeData {
     y : f32,
     fixed: bool,
     label: String,
-	title: String
+	title: String,
+	rotation: usize
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -218,6 +221,7 @@ pub struct NodeFromJsonData {
     kind : String,
     label : String,
 	title : String,
+	rotation : usize,
 	p: Vec<usize>,
     ports : Vec<usize>,
     color : String,
@@ -274,6 +278,7 @@ impl Net {
             agent.fixed = node.fixed;
             agent.label = node.label;
 			agent.title = node.title;
+			agent.rotation = node.rotation;
         }
     }
 
@@ -297,6 +302,7 @@ impl Net {
 					kind,
 					label: d.label,
 					title: d.title,
+					rotation: d.rotation,
 					x: d.x,
 					y: d.y,
 					fixed: d.fixed,
@@ -307,6 +313,7 @@ impl Net {
 					kind,
 					label: d.label,
 					title: d.title,
+					rotation: d.rotation,
 					x: d.x,
 					y: d.y,
 					fixed: d.fixed,
@@ -359,6 +366,7 @@ impl Net {
                 "label": if agent.label.is_empty() { m.1 }
                     else { agent.label.clone() },
 				"title": agent.title,
+				"rotation": agent.rotation,
                 "ports": m.2,
                 "color": color,
                 "width": width,
